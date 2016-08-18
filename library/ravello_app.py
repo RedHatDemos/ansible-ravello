@@ -19,7 +19,7 @@ DOCUMENTATION = '''
 module: ravello_app
 short_description: Manages a published application in Ravello 
 description:
-     - TBD
+  - TBD
 options:
   name:
     description:
