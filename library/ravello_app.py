@@ -17,14 +17,14 @@
 DOCUMENTATION = '''
 ---
 module: ravello_app
-short_description: Manages a published application in Ravello 
+short_description: Manages a published application in Ravello
 description:
   - TBD
 options:
   name:
     description:
       - Unique application instance name
-    required: true 
+    required: true
   description:
     description:
       - Application instance description that will be set on creation
@@ -53,7 +53,7 @@ options:
     required: false
   preferred_cloud:
     description:
-      - Preferred cloud provider to publish the Ravello application if creation is needed. 
+      - Preferred cloud provider to publish the Ravello application if creation is needed.
   preferred_region:
     description:
       - Preferred region to publish the Ravello application if creation is needed.
@@ -82,8 +82,8 @@ options:
     default: 600
 notes:
   - C(app_template) and C(blueprint) are mututally exclusive. One of which is required when C(state) is present or started where creation of a Ravello application may need to occur.
-  - Publishing preferences, C(preferred_cloud), C(preferred_region) and C(optimization_level), are only considered when initially published. Using different values will not change the publishing state of the Ravello application.  
-  '''
+  - Publishing preferences, C(preferred_cloud), C(preferred_region) and C(optimization_level), are only considered when initially published. Using different values will not change the publishing state of the Ravello application.
+'''
 
 EXAMPLES = '''
 # Publish and launch application from an app template
@@ -94,7 +94,7 @@ EXAMPLES = '''
     password: secret
     state: started
 
-# Publish and launch application from an existing blueprint 
+# Publish and launch application from an existing blueprint
 - ravello_app:
     name: "unique-rav-app"
     blueprint: "existing-rav-app.bp"
@@ -121,21 +121,21 @@ EXAMPLES = '''
     app_template: /path/to/ravello_app.template
     username: admin
     password: secret
-    state: present 
+    state: present
 
 # Stop application
 - ravello_app:
     name: "unique-rav-app"
     username: admin
     password: secret
-    state: stopped 
+    state: stopped
 
 # Stop and delete application
 - ravello_app:
     name: "unique-rav-app"
     username: admin
     password: secret
-    state: absent 
+    state: absent
 
 # Restart application
 - ravello_app:
@@ -143,6 +143,57 @@ EXAMPLES = '''
     username: admin
     password: secret
     state: restarted
-
 '''
 
+try:
+    from ravello_sdk import *
+    HAS_RAVELLO_SDK = True
+except ImportError:
+    HAS_RAVELLO_SDK = False
+
+def main():
+    argument_spec = dict(
+        name=dict(required=True),
+        description=dict(default=None),
+        state=dict(default='present', choices=['present', 'absent', 'started', 'stopped', 'restarted']),
+        username=dict(required=True),
+        password=dict(required=True),
+        blueprint=dict(default=None),
+        app_template=dict(default=None, type='path'),
+        preferred_cloud=dict(default=None),
+        preferred_region=dict(default=None),
+        optimization_level=dict(default='cost', choices=['cost', 'performance']),
+        application_ttl=dict(default='-1', type='int'),
+        wait=dict(default=True, type='bool'),
+        wait_timeout=dict(default=600, type='int'),
+        )
+    )
+
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+        mutually_exclusive=[['blueprint', 'app_template']],
+        # We really really should support this...
+        # supports_check_mode = True
+    )
+    if not HAS_RAVELLO_SDK:
+        module.fail_json(msg='ravello_sdk required for this module')
+
+    # NOT IN DOCS/SPECS. Do we want to add this though?
+    # username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None))
+    # password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+
+    # ravello = RavelloClient(username, password, URL???)
+
+    # EXAMPLE of how you'd detect check mode
+    # if module.check_mode:
+    #    pass
+
+    # Example of response to controller...
+    # return module.exit_json(changed=changed, msg=out_clean, rc=rc, whatever=whatever)
+
+
+
+# import module snippets
+from ansible.module_utils.basic import *
+
+main()

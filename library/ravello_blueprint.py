@@ -17,7 +17,7 @@
 DOCUMENTATION = '''
 ---
 module: ravello_blueprint
-short_description: Manages an application blueprint in Ravello 
+short_description: Manages an application blueprint in Ravello
 description:
      - TBD
 options:
@@ -45,7 +45,7 @@ options:
     required: true
   app_name:
     description:
-      - The name of an existing Ravello application to source when creating the blueprint. 
+      - The name of an existing Ravello application to source when creating the blueprint.
       - Required if C(state) is present
     required: false
 notes:
@@ -59,7 +59,7 @@ EXAMPLES = '''
     username: admin
     password: secret
     description: 'A test Ravello blueprint using Ansible'
-    app_name: 'some-rav-app' 
+    app_name: 'some-rav-app'
     state: present
 
 # Check the blueprint exists (See QUESTION in Notes)
@@ -69,7 +69,7 @@ EXAMPLES = '''
     password: secret
     state: present
 
-# Delete a blueprint 
+# Delete a blueprint
 - ravello_blueprint:
     name: 'some-rav-app.bp'
     username: admin
@@ -77,3 +77,47 @@ EXAMPLES = '''
     state: absent
 '''
 
+
+try:
+    from ravello_sdk import *
+    HAS_RAVELLO_SDK = True
+except ImportError:
+    HAS_RAVELLO_SDK = False
+
+def main():
+    argument_spec = dict(
+        name=dict(required=True),
+        description=dict(default=None),
+        state=dict(default='present', choices=['present', 'absent']),
+        username=dict(required=True),
+        password=dict(required=True),
+        app_name=dict(default=None),
+        )
+    )
+
+    module = AnsibleModule(
+        argument_spec=argument_spec,
+        # We really really should support this...
+        # supports_check_mode = True
+    )
+    if not HAS_RAVELLO_SDK:
+        module.fail_json(msg='ravello_sdk required for this module')
+
+    # NOT IN DOCS/SPECS. Do we want to add this though?
+    # username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None))
+    # password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+
+    # ravello = RavelloClient(username, password, URL???)
+
+    # EXAMPLE of how you'd detect check mode
+    # if module.check_mode:
+    #    pass
+
+    # Example of response to controller...
+    # return module.exit_json(changed=changed, msg=out_clean, rc=rc, whatever=whatever)
+
+
+# import module snippets
+from ansible.module_utils.basic import *
+
+main()
