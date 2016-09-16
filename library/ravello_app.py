@@ -1,4 +1,9 @@
 #!/usr/bin/python
+#test
+# (c) 2015, ravellosystems
+# 
+# author zoza
+#
 #
 # Ansible is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -12,138 +17,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
+
 ######################################################################
-
-DOCUMENTATION = '''
----
-module: ravello_app
-short_description: Manages a published application in Ravello
-description:
-  - TBD
-options:
-  name:
-    description:
-      - Unique application instance name
-    required: true
-  description:
-    description:
-      - Application instance description that will be set on creation
-    required: false
-  state:
-    description:
-      - Indicate desired state of the application instance.
-    default: present
-    choices: ['present', 'absent', 'started', 'stopped', 'restarted']
-    required: false
-  username:
-    description:
-      - Ravello system username
-    required: true
-  password:
-    description:
-      - Ravello system password
-    required: true
-  blueprint:
-    description:
-      - Create application instance based on an existing blueprint. See note below.
-    required: false
-  app_template:
-    description:
-      - Create application instance based on a app template. See note below.
-    required: false
-  preferred_cloud:
-    description:
-      - Preferred cloud provider to publish the Ravello application if creation is needed.
-  preferred_region:
-    description:
-      - Preferred region to publish the Ravello application if creation is needed.
-    required: false
-  optimization_level:
-    description:
-      - TBD
-    default: cost
-    required: false
-    choices: ['cost', 'performance']
-  application_ttl:
-    description:
-      - Ravello application autostop defined in minutes
-    required: false
-    default: -1
-  wait:
-    description:
-      - Wait for the Ravello application to be in state 'running' before returning.
-    default: True
-    required: false
-    choices: [ True, False ]
-  wait_timeout:
-    description:
-      - How long before wait gives up, in seconds.
-    required: false
-    default: 600
-notes:
-  - C(app_template) and C(blueprint) are mututally exclusive. One of which is required when C(state) is present or started where creation of a Ravello application may need to occur.
-  - Publishing preferences, C(preferred_cloud), C(preferred_region) and C(optimization_level), are only considered when initially published. Using different values will not change the publishing state of the Ravello application.
-'''
-
-EXAMPLES = '''
-# Publish and launch application from an app template
-- ravello_app:
-    name: "unique-rav-app"
-    app_template: /path/to/ravello_app.template
-    username: admin
-    password: secret
-    state: started
-
-# Publish and launch application from an existing blueprint
-- ravello_app:
-    name: "unique-rav-app"
-    blueprint: "existing-rav-app.bp"
-    username: admin
-    password: secret
-    state: started
-
-# Publish application with preferences and auto stop after 2 days
-- ravello_app:
-    name: "unique-rav-app"
-    blueprint: "existing-rav-app.bp"
-    username: admin
-    password: secret
-    preferred_region: Oregon
-    preferred_cloud: AMAZON
-    optimization_level: performance
-    application_ttl: 2880
-    state: started
-
-# QUESTION: WHAT IF STARTED THEN PRESENT CALLED? RESPOND OK AND NO CHANGES? ERROR?
-# Publish application but do not start VMs
-- ravello_app:
-    name: "unique-rav-app"
-    app_template: /path/to/ravello_app.template
-    username: admin
-    password: secret
-    state: present
-
-# Stop application
-- ravello_app:
-    name: "unique-rav-app"
-    username: admin
-    password: secret
-    state: stopped
-
-# Stop and delete application
-- ravello_app:
-    name: "unique-rav-app"
-    username: admin
-    password: secret
-    state: absent
-
-# Restart application
-- ravello_app:
-    name: "unique-rav-app"
-    username: admin
-    password: secret
-    state: restarted
-'''
 
 try:
     from ravello_sdk import *
@@ -151,24 +26,137 @@ try:
 except ImportError:
     HAS_RAVELLO_SDK = False
 
-def main():
-    argument_spec = dict(
-        name=dict(required=True),
-        description=dict(default=None),
-        state=dict(default='present', choices=['present', 'absent', 'started', 'stopped', 'restarted']),
-        username=dict(required=True),
-        password=dict(required=True),
-        blueprint=dict(default=None),
-        app_template=dict(default=None, type='path'),
-        preferred_cloud=dict(default=None),
-        preferred_region=dict(default=None),
-        optimization_level=dict(default='cost', choices=['cost', 'performance']),
-        application_ttl=dict(default='-1', type='int'),
-        wait=dict(default=True, type='bool'),
-        wait_timeout=dict(default=600, type='int'),
-        )
-    )
+except ImportError:
+    print "failed=True msg='ravello sdk required for this module'"
+    sys.exit(1)
 
+DOCUMENTATION = '''
+---
+module: ravello_app
+short_description: Create/delete/start/stop an application in ravellosystems
+description:
+     - Create/delete/start/stop an application in ravellosystems and wait for it (optionally) to be 'running'
+	 - list state will return a fqdn list of exist application hosts with their external services
+options:
+  state:
+    description:
+     - Indicate desired state of the target.
+    default: present
+    choices: ['design', 'present', 'started', 'absent', 'stopped','list']
+  username:
+     description:
+      - ravello username
+  password:
+    description:
+     - ravello password
+  service_name: 
+  	description:
+     - Supplied Service name for list state 
+    default: ssh
+  name:
+    description:
+     - application name
+  description:
+    description:
+     - application description
+  blueprint_id:
+    description:
+     - create app, based on this blueprint
+  #publish options
+  cloud:
+    description:
+     - cloud to publish
+  region:
+    description:
+     - region to publish
+  publish_optimization:
+    default: cost
+    choices: ['cost', 'performance']
+  application_ttl:
+    description:
+     - application autostop in mins
+    default: -1 # never
+  wait
+    description:
+     - Wait for the app to be in state 'running' before returning.
+    default: True
+    choices: [ True, False ]
+  wait_timeout:
+    description:
+     - How long before wait gives up, in seconds.
+    default: 600
+'''
+
+EXAMPLES = '''
+# Create app, based on blueprint, start it and wait for started
+- local_action:
+    module: ravello_app
+    username: user@ravello.com
+    password: password
+    name: 'my-application-name'
+    description: 'app desc'
+    blueprint_id: '2452'
+    wait: True
+    wait_timeout: 600
+    state: present
+# Create app, based on blueprint
+- local_action:
+    module: ravello_app
+    username: user@ravello.com
+    password: password
+    name: 'my-application-name'
+    description: 'app desc'
+    publish_optimization: performance
+    cloud:AMAZON
+    region: Oregon
+    state: present
+# List application example
+- local_action:
+    module: ravello_app
+    name: 'my-application-name'
+    service_name: 'ssh'
+    state: list
+# Delete application example
+- local_action:
+    module: ravello_app
+    name: 'my-application-name'
+    state: absent
+# Delete application example from matryoshka (nested)
+- local_action:
+    module: ravello_app
+    url: 'https://matryoshka.com/api/v1' or https://matryoshka.com/services
+    name: 'my-application-name'
+    state: absent
+'''
+
+def main():
+    ch = logging.StreamHandler(log_capture_string)
+    ch.setLevel(logging.DEBUG)
+    ### Optionally add a formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    ### Add the console handler to the logger
+    logger.addHandler(ch)    
+    argument_spec=dict(
+            # for nested babu only
+            url=dict(required=False, type='str'),
+            state=dict(default='present', choices=['design', 'present', 'started', 'absent', 'stopped', 'list', 'blueprint']),
+            username=dict(required=False, type='str'),
+            password=dict(required=False, type='str'),
+            name=dict(required=True, type='str'),
+            description=dict(required=False, type='str'),
+            blueprint_id=dict(required=False, type='str'),
+            app_template=dict(required=False, default=None, type='path'),
+            cloud=dict(required=False, type='str'),
+            region=dict(required=False, type='str'),
+            publish_optimization=dict(default='cost', choices=['cost', 'performance']),
+            application_ttl=dict(default='-1', type='int'),
+            service_name=dict(default='ssh', type='str'),
+            blueprint_description=dict(required=False, type='str'),
+            blueprint_name=dict(required=False, type='str'),
+            wait=dict(type='bool', default=True ,choices=BOOLEANS),
+            wait_timeout=dict(default=1200, type='int')
+    )
     module = AnsibleModule(
         argument_spec=argument_spec,
         mutually_exclusive=[['blueprint', 'app_template']],
@@ -177,23 +165,181 @@ def main():
     )
     if not HAS_RAVELLO_SDK:
         module.fail_json(msg='ravello_sdk required for this module')
+    try:
+        username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None)) 
+        password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+        
+        client = RavelloClient(username, password, module.params.get('url'))
+        
+        if module.params.get('state') == 'design':
+          create_app(client, module)
+        elif module.params.get('state') == 'present':
+          create_app_and_publish(client, module)
+        elif module.params.get('state') == 'absent':
+          action_on_app(module, client, client.delete_application, lambda: None, 'Deleted')
+        elif module.params.get('state') == 'started':
+          action_on_app(module, client, client.start_application, functools.partial(_wait_for_state,client,'STARTED',module), 'Started')
+        elif module.params.get('state') == 'stopped':
+          action_on_app(module, client, client.stop_application, functools.partial(_wait_for_state,client,'STOPPED',module), 'Stopped')
+        elif module.params.get('state') == 'list':
+          list_app(client, module)
+        elif module.params.get('state') == 'blueprint':
+          action_on_blueprint(module, client, client.create_blueprint)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
-    # NOT IN DOCS/SPECS. Do we want to add this though?
-    # username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None))
-    # password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+def _wait_for_state(client, state, module):
+    if module.params.get('wait') == False:
+        return
+    wait_timeout = module.params.get('wait_timeout')
+    app_id = 0
+    wait_till = time.time() + wait_timeout
+    while wait_till > time.time():
+        if app_id > 0:
+            app = client.get_application(app_id)
+        else:
+            app =  client.get_application_by_name(module.params.get('name'))
+            app_id = app['id']
+        states = list(set((vm['state'] for vm in app.get('deployment', {}).get('vms', []))))
+        if "ERROR" in states:
+            log_contents = log_capture_string.getvalue()
+            log_capture_string.close()
+            module.fail_json(msg = 'Vm got ERROR state',stdout='%s' % log_contents)
+        if len(states) == 1 and states[0] == state:
+            return
+        time.sleep(10)
+    log_contents = log_capture_string.getvalue()
+    log_capture_string.close()
+    module.fail_json(msg = 'Timed out waiting for async operation to complete.',  stdout='%s' % log_contents)
 
-    # ravello = RavelloClient(username, password, URL???)
+def is_wait_for_external_service(supplied_service,module):
+    return supplied_service['name'].lower() == module.params.get('service_name').lower() and supplied_service['external'] == True
 
-    # EXAMPLE of how you'd detect check mode
-    # if module.check_mode:
-    #    pass
+def get_list_app_vm_result(app, vm, module):
+   
+    for supplied_service in vm['suppliedServices']:            
+    	if is_wait_for_external_service(supplied_service, module):
+            for network_connection in vm['networkConnections']:
+                if network_connection['ipConfig']['id'] == supplied_service['ipConfigLuid']:
+                    dest = network_connection['ipConfig'].get('fqdn')
+                    port = int(supplied_service['externalPort'].split(",")[0].split("-")[0])
+                    return (dest,port)
+	            
+def list_app(client, module):
+    try:
+        app_name = module.params.get("name")
+        app = client.get_application_by_name(app_name)
+        
+        results = []
+        
+        for vm in app['deployment']['vms']:
+            if vm['state'] != "STARTED":
+                continue
+            (dest,port) = get_list_app_vm_result(app, vm, module)
+            results.append({'host': dest, 'port': port})
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s' % app_name, results='%s' % results,stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
-    # Example of response to controller...
-    # return module.exit_json(changed=changed, msg=out_clean, rc=rc, whatever=whatever)
+def action_on_blueprint(module, client, runner_func):
+    try:
+        app_name = module.params.get("name")
+        app = client.get_application_by_name(app_name)
+        blueprint_name = module.params.get("blueprint_name")
+        blueprint_description = module.params.get("blueprint_description")
+        blueprint_dict = {"applicationId":app['id'], "blueprintName":blueprint_name, "offline": True,  "description":blueprint_description }
+        blueprint_id=((runner_func(blueprint_dict))['_href'].split('/'))[2]
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s' % app_name, blueprint_id='%s' % blueprint_id)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
+	 
+def action_on_app(module, client, runner_func, waiter_func, action):
+    try:
+        app_name = module.params.get("name")
+        app = client.get_application_by_name(app_name)
+        runner_func(app['id'])
+        waiter_func()
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+    
+def create_app(client, module):
+    if not module.params.get("app_template"):
+        module.fail_json(msg='Must supply an app_template for design state.', changed=False)
+    app_template = module.params.get("app_template")
+    file = open(app_template, "r")
+    ymlregex = re.compile(r'.*\.(yml|yaml)')
+    jsnregex = re.compile(r'.*\.(jsn|json)')
+    if re.search(ymlregex, app_template)
+      try:
+        yaml.loads(file)
+      except:
+        module.fail_json(msg='App Template is not valid YAML.', changed=False)
+      new_app = yaml.load(file)
+    elif re.search(jsnregex, app_template)
+      try:
+        json.loads(file)
+      except:
+        module.fail_json(msg='App Template is not valid JSON.', changed=False)
+      new_app = json.load(file)
+    # for k,v in new_app.items():
+    app = {'name': module.params.get("name"), 'description': module.params.get("description",'')}    
+    app = client.create_application(app)
 
-
+def create_app_and_publish(client, module):
+    #validation
+    if not module.params.get("blueprint_id"):
+            module.fail_json(msg='Must supply a blueprint_id', changed=False)
+    if 'performance' == module.params.get("publish_optimization"):
+        if not module.params.get("cloud"):
+            module.fail_json(msg='Must supply a cloud when publish optimization is performance', changed=False)
+        if not module.params.get("region"):
+            module.fail_json(msg='Must supply a region when publish optimization is performance', changed=False)
+    app = {'name': module.params.get("name"), 'description': module.params.get("description",''), 'baseBlueprintId': module.params.get("blueprint_id")}    
+    app = client.create_application(app)
+    req = {}
+    if 'performance' == module.params.get("publish_optimization"):
+        req = {'id': app['id'] ,'preferredCloud': module.params.get("cloud"),'preferredRegion': module.params.get("region"), 'optimizationLevel': 'PERFORMANCE_OPTIMIZED'}
+    ttl=module.params.get("application_ttl")
+    if ttl != -1:
+        ttl =ttl * 60
+        exp_req = {'expirationFromNowSeconds': ttl}
+        client.set_application_expiration(app,exp_req)
+    client.publish_application(app, req)
+    _wait_for_state(client,'STARTED',module)
+    log_contents = log_capture_string.getvalue()
+    log_capture_string.close()
+    module.exit_json(changed=True, name='Created and published application: %s .' % module.params.get("name"),stdout='%s' % log_contents)
 
 # import module snippets
+import ansible
+import os
+import functools
+import logging
+import io
+import datetime
+import sys
+import yaml
+import json
+
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+log_capture_string = io.BytesIO()
+
 from ansible.module_utils.basic import *
 
 main()
