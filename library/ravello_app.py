@@ -276,7 +276,9 @@ def action_on_app(module, client, runner_func, waiter_func, action):
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
-    
+
+# This is where we need to do the work of loading the JSON generated from the YAML (or JSON) input file into a
+# blank app into its design aspect - prutledg
 def create_app(client, module):
     if not module.params.get("app_template"):
         module.fail_json(msg='Must supply an app_template for design state.', changed=False)
