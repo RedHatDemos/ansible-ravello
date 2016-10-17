@@ -1,3 +1,7 @@
+:scrollbar:
+:data-uri:
+:toc2:
+
 == Requirements & Instructions on Using the Ansible Ravello Module
 
 :numbered:
@@ -8,7 +12,7 @@ The purpose of the Ravello Ansible module is to provide a way to interact with R
 
 == Requirements
 
-. First and foremost obtain the Ravello SDK. 
+. First and foremost obtain the Ravello SDK: 
 +
 ----
 # Install Ravello Python SDK
@@ -34,3 +38,18 @@ Enter a Password:
 # Get APP JSON (-a is for a full JSON dump)
 ./app-get-data -a myapp-bp-i > app.json
 ----
+
+.. Docs on using the Ravello SDK: `https://github.com/ravello/python-sdk` & `http://ravello-sdk.readthedocs.io/en/ravello-sdk-1.4/`
+
+. Install Ansible `http://docs.ansible.com/ansible/intro_installation.html`
+
+== Using the Ravello Ansible Module
+
+=== Query the Ravello environment
+
+=== Example Application Creation w/Playbooks
+
+=== Save Deployed Application to a Blueprint
+
+=== Delete the Application
+
