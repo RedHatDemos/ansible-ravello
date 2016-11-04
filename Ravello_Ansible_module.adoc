@@ -12,36 +12,71 @@ The purpose of the Ravello Ansible module is to provide a way to interact with R
 
 == Requirements
 
-. First and foremost obtain the Ravello SDK: 
+. Install Ansible `http://docs.ansible.com/ansible/intro_installation.html`
+. Install the Ravello SDK via **pip**
++
+NOTE: For manual setup instructions see `https://github.com/ravello/python-sdk` and for additional documentation see `http://ravello-sdk.readthedocs.io/en/ravello-sdk-1.4/`
 +
 ----
-# Install Ravello Python SDK
-sudo pip install ravello-sdk
+pip install ravello-sdk
+----
 
-# Get to a good working directory
-cd
+=== Test Ravello SDK
 
-# Clone the git repo
+. Clone the ravello-sdk locally to use the example scripts
++
+----
+cd <desired_dir>
 git clone https://github.com/ravello/python-sdk.git
-
-# Get into the repo
+----
++
+. Change to the **examples** directory
++
+----
 cd python-sdk/examples
-
-# Set up credentials file for Ravello
+----
++
+. Set up credentials file for Ravello using your username and password
++
+----
 ./set-creds
 Enter username: yourlogin@redhat.com
 Enter a Password:
-
-# Run an example
+----
++
+. Verify saved credentials
++
+WARNING: This will display your password in plain text on the terminal
++
+----
+cat ~/.ravello_login
+<username>
+<password>
+----
++
+. Test the script to get all blueprints you have access to
++
+----
 ./bp-get-all
-
-# Get APP JSON (-a is for a full JSON dump)
-./app-get-data -a myapp-bp-i > app.json
+<all blueprints you have access to>
 ----
 
-.. Docs on using the Ravello SDK: `https://github.com/ravello/python-sdk` & `http://ravello-sdk.readthedocs.io/en/ravello-sdk-1.4/`
+=== Test Capture of Ravello Environment Metadata to JSON
 
-. Install Ansible `http://docs.ansible.com/ansible/intro_installation.html`
+. Test the script to get all applications you have access to
++
+----
+./app-get-all
+<all apps you have access to>
+----
++
+. Test the script to get all metadata for a specific application and write it to a JSON file
++
+NOTE: The option **-a** is for a full JSON dump of extended application metadata
++
+----
+./app-get-data -a <one app name from output in previous step > myapp.json
+----
 
 == Using the Ravello Ansible Module
 
@@ -52,4 +87,3 @@ Enter a Password:
 === Save Deployed Application to a Blueprint
 
 === Delete the Application
-
