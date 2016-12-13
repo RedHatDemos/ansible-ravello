@@ -4,9 +4,8 @@
       # Create app, based on blueprint, start it and wait for started
     - local_action:
         module: ravello_app
-        #      username: user@ravello.com
-        #password: password
-        name: 'vvaldez-application-name'
-        description: 'testing design via ansible'
+        # Make sure you update the version number as the name must be unique
+        name: 'example_app-v1.0'
+        description: 'Example blueprint created by ansible'
         app_template: '/home/prutledg/ansible-ravello/app_template.yml'
         state: design

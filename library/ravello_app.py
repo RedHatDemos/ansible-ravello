@@ -20,6 +20,7 @@
 
 ######################################################################
 
+import random, string
 
 try:
     from ravello_sdk import *
@@ -346,44 +347,32 @@ def action_on_app(module, client, runner_func, waiter_func, action):
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
-# This is where we need to do the work of loading the JSON generated from the YAML (or JSON) input file into a
-# blank app into its design aspect - prutledg
 def create_app(client, module):
+    app_name = module.params.get("name")
+    app_description = module.params.get("description")
     if not module.params.get("app_template"):
         module.fail_json(msg='Must supply an app_template for design state.', changed=False)
     app_template = module.params.get("app_template")
-    #file = open(app_template, "r")
-    #ymlregex = re.compile(r'.*\.(yml|yaml)')
-    #jsnregex = re.compile(r'.*\.(jsn|json)')
-    app_name = module.params.get("name")
-    #if re.search(ymlregex, app_template):
-      #try:
-      #  yaml.loads(file)
-      #except:
-      #  module.fail_json(msg='App Template is not valid YAML.', changed=False)
-      #new_app = yaml.load(file)
-    with open(app_template) as data:
-      new_app = yaml.load(data)
-    #print(new_app)
-    #elif re.search(jsnregex, app_template):
-      #try:
-      #  json.loads(file)
-      #except:
-      #  module.fail_json(msg='App Template is not valid JSON.', changed=False)
-    #  new_app = json.load(file)
+    with open(app_template, 'r') as data:
+      try:
+        new_app = yaml.load(data)
+      except yaml.YAMLError as exc:
+        print(exc)
     try:
-        new_app = {'name': module.params.get("name"), 'description': module.params.get("description",''), 'baseBlueprintId': 1}    
-        appID = client.create_application(new_app)
-        log_contents = log_capture_string.getvalue()
-        log_capture_string.close()
-        module.exit_json(changed=True, name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
+        rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
+        new_app['name'] = "tmp-app-build-" + rand_str(10)
+        new_app['description'] = app_description
+        created_app = client.create_application(new_app)
+        appID = created_app['id']
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
     try:
-        blueprint_dict = {"applicationId":appID, "blueprintName":module.params.get('name'), "offline": True,  "description":module.params.get('description') }
+        blueprint_name = app_name + "-bp"
+        blueprint_dict = {"applicationId":appID, "blueprintName":blueprint_name, "offline": False, "description":app_description }
         blueprint_id=((client.create_blueprint(blueprint_dict))['_href'].split('/'))[2]
+        client.delete_application(created_app)
         module.exit_json(changed=True, name='%s' % app_name, blueprint_id='%s' % blueprint_id)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
