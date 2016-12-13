@@ -286,6 +286,7 @@ def create_app(client, module):
     file = open(app_template, "r")
     ymlregex = re.compile(r'.*\.(yml|yaml)')
     jsnregex = re.compile(r'.*\.(jsn|json)')
+    app_name = module.params.get("name")
     if re.search(ymlregex, app_template)
       try:
         yaml.loads(file)
@@ -298,9 +299,23 @@ def create_app(client, module):
       except:
         module.fail_json(msg='App Template is not valid JSON.', changed=False)
       new_app = json.load(file)
-    # for k,v in new_app.items():
-    app = {'name': module.params.get("name"), 'description': module.params.get("description",'')}    
-    app = client.create_application(app)
+    try:
+        appID = client.create_application(new_app)
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+    try:
+        blueprint_dict = {"applicationId":appID, "blueprintName":module.params.get('name'), "offline": True,  "description":module.params.get('description') }
+        blueprint_id=((client.create_blueprint(blueprint_dict))['_href'].split('/'))[2]
+        module.exit_json(changed=True, name='%s' % app_name, blueprint_id='%s' % blueprint_id)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
 def create_app_and_publish(client, module):
     #validation
