@@ -1,61 +1,141 @@
-# This is an example for a application that would contian a workstation host and an host that will provide https services.
----
- - vms:
-    - name: 0workstation
-      vm_base_name: RHEL7_Baseline
-      description: '''
-      '''
-      hostnames:
-       - workstation-REPL.rhpds.opentlc.com
-      cpus: 2
-      mem_size: 1
-      mem_type: gb
-      nested_virt: False
-      timeout: 2 # If the VM does not shut down gracefully, power it off in 2 mins. (Highly suggested as the default is something like 20 mins!)
-      nics:
-       - ipmode: dhcp # When using DHCP/Reserved IPs, you can only specify the IP address
-         # Note: Ravello does not like when you mix DHCP and Static in the same application!
-         ip_addr: 192.168.0.100
-         #netmask:
-         #dns:
-         #gateway:
-         mac_addr: aa:bb:cc:dd:ee:00 # If you specify mac automac is disabled
-         device: virtio # best for RHEL
-      cloud-init-enabled: True
-      cloud-init-keypair: opentlc-admin-backdoor
-      cloud-init-user-data: '''
-      '''
-      #additional_disks: # If you want to specify any additional disks
-      # - name: data_disk
-      #   size: 10
-      #   controller: virtio
-      #   base_image: rhel_root.img
-      services:
-       - name: SSH
-         port: 22
-         protocol: SSH
-    - name: 1test-host
-      vm_base_name: RHEL7_Baseline
-      description: '''
-      '''
-      hostnames:
-       - test-REPL.rhpds.opentlc.com
-      cpus: 2
-      mem_size: 1
-      mem_type: gb
-      nested_virt: False
-      timeout: 2
-      nics:
-       - ipmode: dhcp
-         ip_addr: 192.168.0.101
-         mac_addr: aa:bb:cc:dd:ee:01
-         device: virtio
-      cloud-init-enabled: False
-      additional_disks: # Add a blank 10 GB disk, you would configure this later in your playbook or the user will in the lab environment.
-       - name: data_disk
-         size: 10
-         controller: virtio
-      services:
-       - name: HTTPS
-         port: 443
-         protocol: HTTPS
+name: myapp
+design:
+  - name: server1
+    hostnames:
+    - server1-REPL.rhpds.opentlc.com
+    - server1.example.com
+    baseVmId: 75555386
+    bootOrder:
+    - CDROM
+    - DISK
+    # Only add extra disks index 0 is reserved for OS Baseline
+    hardDrives:
+    - boot: false
+      controller: virtio
+      #controllerIndex: 1
+      index: 1
+      name: vol
+      size:
+        unit: GB
+        value: 10
+      type: DISK
+    numCpus: 1
+    memorySize:
+      unit: GB
+      value: 4
+    networkConnections:
+    - name: eth0
+      accessPort: true
+      device:
+        deviceType: virtio
+        index: 0
+        useAutomaticMac: true
+      ipConfig:
+        autoIpConfig:
+          reservedIp: 192.168.1.10
+        externalAccessState: CONDITIONAL_PUBLIC_IP
+        hasPublicIp: true
+        needElasticIp: false
+    powerOffOnStopTimeOut: true
+    stopTimeOut: '300'
+    suppliedServices:
+    - external: true
+      ip: 192.168.1.10
+      name: ssh
+      portRange: '22'
+      protocol: SSH
+    supportsCloudInit: true
+    keypairName: opentlc-admin-backdoor
+  - name: server3
+    hostnames:
+    - server3.example.com
+    allowNested: true
+    baseVmId: 75555386
+    memorySize:
+      unit: GB
+      value: 4
+    numCpus: 2
+    networkConnections:
+    - name: eth0
+      accessPort: true
+      device:
+        deviceType: virtio
+        index: 0
+        pciSlot: 1
+        useAutomaticMac: true
+      ipConfig:
+        autoIpConfig:
+          reservedIp: 192.168.1.30
+        externalAccessState: CONDITIONAL_PUBLIC_IP
+        hasPublicIp: false
+        needElasticIp: false
+    - name: eth1
+      accessPort: true
+      device:
+        deviceType: virtio
+        index: 1
+        mac: 2c:c2:60:2e:fd:69
+        useAutomaticMac: false
+      ipConfig:
+        externalAccessState: CONDITIONAL_PUBLIC_IP
+        hasPublicIp: false
+        needElasticIp: false
+        staticIpConfig:
+          ip: 192.168.2.30
+          mask: 255.255.255.0
+    powerOffOnStopTimeOut: true
+    stopTimeOut: '300'
+    supportsCloudInit: false
+  - name: server2
+    hostnames:
+    - server2.example.com
+    allowNested: true
+    baseVmId: 75555386
+    description: ':nohbac:'
+    bootOrder:
+    - CDROM
+    - DISK
+    memorySize:
+      unit: GB
+      value: 4
+    numCpus: 1
+    networkConnections:
+    - name: eth0
+      accessPort: true
+      device:
+        deviceType: virtio
+        index: 0
+        useAutomaticMac: true
+      ipConfig:
+        autoIpConfig:
+          reservedIp: 192.168.1.20
+        externalAccessState: CONDITIONAL_PUBLIC_IP
+        hasPublicIp: true
+    - name: eth1
+      accessPort: true
+      device:
+        deviceType: virtio
+        index: 1
+        useAutomaticMac: true
+      ipConfig:
+        externalAccessState: CONDITIONAL_PUBLIC_IP
+        hasPublicIp: false
+        needElasticIp: false
+        staticIpConfig:
+          ip: 192.168.2.20
+          mask: 255.255.255.0
+    powerOffOnStopTimeOut: true
+    stopTimeOut: '300'
+    requiresKeypair: false
+    suppliedServices:
+    - name: http
+      external: true
+      portRange: '443'
+      protocol: HTTPS
+      ip: 192.168.1.20
+    - name: https
+      external: true
+      portRange: '80'
+      protocol: HTTP
+      ip: 192.168.1.20
+    supportsCloudInit: false
