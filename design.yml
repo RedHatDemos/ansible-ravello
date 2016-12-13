@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+      # Create app, based on blueprint, start it and wait for started
+    - local_action:
+        module: ravello_app
+        #      username: user@ravello.com
+        #password: password
+        name: 'vvaldez-application-name'
+        description: 'testing design via ansible'
+        app_template: library/app_template.yml
+        state: design
