@@ -20,6 +20,7 @@
 
 ######################################################################
 
+
 try:
     from ravello_sdk import *
     HAS_RAVELLO_SDK = True
@@ -129,6 +130,64 @@ EXAMPLES = '''
     state: absent
 '''
 
+import os
+import base64
+import getpass
+import logging
+import logging.handlers
+
+def get_credentials():
+        with open(os.path.expanduser("~/.ravello_login"),"r") as pf:
+                username = pf.readline().strip()
+                encrypted_password = pf.readline().strip()
+        password = base64.b64decode(encrypted_password).decode()
+        return username,password
+
+def get_user_credentials(username):
+
+        password = None
+
+        if username:
+                password = getpass.getpass('Enter a Password: ')
+        else:
+                #read user credentials from .ravello_login file in user HOMEDIR
+                username,password = get_credentials()
+
+        if not username or not password:
+                log.error('User credentials are not set')
+                print('Error: User credentials are not set')
+                return None,None
+
+        return username,password
+
+def initlog(log_file):
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        logpath=os.path.join(os.getcwd(),log_file)
+        handler = logging.handlers.RotatingFileHandler(logpath, maxBytes=1048576, backupCount=10)
+        fmt = '%(asctime)s: %(filename)-20s %(levelname)-8s %(message)s'
+        handler.setFormatter(logging.Formatter(fmt))
+        logger.addHandler(handler)
+
+def connect(username, password):
+        client = RavelloClient()
+        try:
+                client.login(username, password)
+        except Exception as e:
+                sys.stderr.write('Error: {!s}\n'.format(e))
+                log.error('Invalid user credentials, username {0}'.format(username))
+                print('Error: Invalid user credentials, username {0}'.format(username))
+                return None
+        return client
+
+def get_app_id(app_name,client):
+        app_id=0
+        for app in client.get_applications():
+                if app['name'].lower() == app_name.lower():
+                        app_id = app['id']
+                        break
+        return app_id
+
 def main():
     ch = logging.StreamHandler(log_capture_string)
     ch.setLevel(logging.DEBUG)
@@ -166,10 +225,20 @@ def main():
     if not HAS_RAVELLO_SDK:
         module.fail_json(msg='ravello_sdk required for this module')
     try:
-        username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None)) 
-        password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
-        
-        client = RavelloClient(username, password, module.params.get('url'))
+        #username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None)) 
+        #password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+       # 
+       # client = RavelloClient(username, password, module.params.get('url'))
+
+        #Get user credentials
+        username, password  = get_user_credentials(None)
+        if not username or not password:
+                exit(1)
+
+        #Connect to Ravello
+        client = connect(username, password)
+        if not client:
+                exit (1)
         
         if module.params.get('state') == 'design':
           create_app(client, module)
@@ -283,23 +352,27 @@ def create_app(client, module):
     if not module.params.get("app_template"):
         module.fail_json(msg='Must supply an app_template for design state.', changed=False)
     app_template = module.params.get("app_template")
-    file = open(app_template, "r")
-    ymlregex = re.compile(r'.*\.(yml|yaml)')
-    jsnregex = re.compile(r'.*\.(jsn|json)')
+    #file = open(app_template, "r")
+    #ymlregex = re.compile(r'.*\.(yml|yaml)')
+    #jsnregex = re.compile(r'.*\.(jsn|json)')
     app_name = module.params.get("name")
-    if re.search(ymlregex, app_template)
-      try:
-        yaml.loads(file)
-      except:
-        module.fail_json(msg='App Template is not valid YAML.', changed=False)
-      new_app = yaml.load(file)
-    elif re.search(jsnregex, app_template)
-      try:
-        json.loads(file)
-      except:
-        module.fail_json(msg='App Template is not valid JSON.', changed=False)
-      new_app = json.load(file)
+    #if re.search(ymlregex, app_template):
+      #try:
+      #  yaml.loads(file)
+      #except:
+      #  module.fail_json(msg='App Template is not valid YAML.', changed=False)
+      #new_app = yaml.load(file)
+    with open(app_template) as data:
+      new_app = yaml.load(data)
+    #print(new_app)
+    #elif re.search(jsnregex, app_template):
+      #try:
+      #  json.loads(file)
+      #except:
+      #  module.fail_json(msg='App Template is not valid JSON.', changed=False)
+    #  new_app = json.load(file)
     try:
+        new_app = {'name': module.params.get("name"), 'description': module.params.get("description",''), 'baseBlueprintId': 1}    
         appID = client.create_application(new_app)
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
