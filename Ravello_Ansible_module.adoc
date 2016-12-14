@@ -120,7 +120,7 @@ The *name* field must be unique.  All blueprints must have a unique name.  Typic
 ----
 ansible-playbook design.yml -vvv
 ----
-+
+
 ----
 Using /etc/ansible/ansible.cfg as config file
  [WARNING]: provided hosts list is empty, only localhost is available
