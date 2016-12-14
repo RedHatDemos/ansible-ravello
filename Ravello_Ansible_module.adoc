@@ -178,3 +178,7 @@ changed: [localhost -> localhost] => {
 ----
 
 === Check for Blueprint
+
+. Log into Ravello and check if the blueprint exists.
+
+. The next steps would be to deploy the blueprint with this ansible module as a new application, inventory the app, and apply final playbook(s) to the resulting VMs then create final blueprint from that.
