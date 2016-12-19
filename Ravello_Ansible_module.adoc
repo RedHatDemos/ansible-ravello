@@ -80,7 +80,7 @@ NOTE: The option **-a** is for a full JSON dump of extended application metadata
 
 == Using the Ravello Ansible Module
 
-=== Clone the Ansible Ravello repository
+=== Clone the Ansible Ravello Repository
 
 . Change to a directory of your chosing
 +
