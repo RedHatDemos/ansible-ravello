@@ -80,9 +80,17 @@ NOTE: The option **-a** is for a full JSON dump of extended application metadata
 
 == Using the Ravello Ansible Module
 
+=== Clone the Ansible Ravello repository
+
+. Change to a directory of your chosing
++
+----
+git clone https://github.com/RedHatDemos/ansible-ravello.git
+----
+
 === Create YAML Template
 
-. Create template from existing app:
+. Within the cloned repository directory, create template from existing app:
 +
 ----
 ./app-get-data -a <your_application> 2>/dev/null|python -c 'import sys, yaml, json; yaml.safe_dump(json.load(sys.stdin), sys.stdout, default_flow_style=False)' > out.yaml
