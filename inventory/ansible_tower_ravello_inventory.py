@@ -16,6 +16,7 @@ jlabocki <at> redhat.com or @jameslabocki on twitter
 '''
 
 import os
+import re
 import argparse
 import ConfigParser
 import requests
@@ -76,17 +77,21 @@ class RavelloInventory(object):
 
         config.read(config_paths)
 
-        # Ravello Username
-        if config.has_option('ravello', 'username'):
-            self.ravello_username = config.get('ravello', 'username')
-        else:
-            self.ravello_username = "none"
+        self.ravello_username, self.ravello_password  = get_user_credentials(None)
+        if not self.ravello_username or not self.ravello_password:
+                exit(1)
 
-        # Ravello Password
-        if config.has_option('ravello', 'password'):
-            self.ravello_password = config.get('ravello', 'password')
-        else:
-            self.ravello_password = "none"
+        # Ravello Username
+        #if config.has_option('ravello', 'username'):
+        #    self.ravello_username = config.get('ravello', 'username')
+        #else:
+        #    self.ravello_username = "none"
+#
+#        # Ravello Password
+#        if config.has_option('ravello', 'password'):
+#            self.ravello_password = config.get('ravello', 'password')
+#        else:
+#            self.ravello_password = "none"
 
     def get_apps_all(self):
         #Connect to Ravello
@@ -127,47 +132,29 @@ class RavelloInventory(object):
               myappid = app['id']
 
         #First, define empty lists for the the tags, groups, subgroups for tags/vms, and the formatted list for tower.
-        tags = []
-        groups = []
-        subgroups_tags = []
-        subgroups_tags_2 = []
-        subgroups_vms = []
-        tower_master_dict = {}
-        tower_master_app_dict = {}
-        tower_hostname_list = []
+        tags = {}
 
-        #for id in ids:
         app = client.get_application(myappid, aspect="design")
 
         if app['design']:
-          tagsFlag = True if "tags" in app["design"] else False
-          if tagsFlag == True:
-            appname = app['name']
-            subgroups_tags = app['design']['tags']
-            for subgroup_tags in subgroups_tags:
-              myvalue = subgroup_tags.get("value")
-              myid = subgroup_tags.get("id")
-            
-              vmsFlag = True if "vms" in app["design"] else False # Check if the object we are looking at is a VM, if not, skip it.
-              if vmsFlag == True:
-               subgroups_vms = app['design']['vms']
-
-              for subgroup_vms in subgroups_vms:
-                tagsrefFlag = True if "tagRefs" in subgroup_vms else False
-                tower_hostname_list = []
-                if tagsrefFlag == True:
-                  hostnamelist =  subgroup_vms.get('hostnames')
-                  keylist = subgroup_vms.get("tagRefs")
-                  keylist_2 = keylist[0].get("tagIdStr")
-                  if str(keylist_2) == str(myid):
-                    tower_hostname = hostnamelist[0]
-                    if myvalue in tower_master_dict.keys():
-                      tower_master_dict[myvalue].append(tower_hostname)
-                    else: 
-                      tower_master_dict[myvalue] = [tower_hostname]
+          appname = app['name']
+          vmsFlag = True if "vms" in app["design"] else False
+          if vmsFlag == True:
+            vms = app['design']['vms']
+            for vm in vms:
+              hostnames = vm['hostnames']
+              hostname = hostnames[0]
+              desc = vm['description']
+              for line in desc.splitlines():
+                if re.match("^tag:", line):
+                  t = line.split(':')
+                  tag = t[1]
+                  if tag in tags.keys():
+                    tags[tag].append(hostname)
+                  else:
+                    tags[tag] = [hostname]
                     
-        print json.dumps(tower_master_dict, indent=5)  
+        print json.dumps(tags, indent=5)  
 
 #Run the script
 RavelloInventory()
-
