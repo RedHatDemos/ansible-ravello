@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  roles:
+    - role: blueprint_design
+      when: not blueprint_id is defined
+    - role: application_create_from_blueprint
+      blueprint_id: "{{ design_results.blueprint_id }}"
+
