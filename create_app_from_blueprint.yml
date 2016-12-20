@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  vars:
+    app_name: 'vvaldez-example_app-v1.0'
+    blueprint_id: '76842232'
+  tasks:
+    # Create app, based on deployed blueprint, start it and wait for started
+    - local_action:
+        module: ravello_app
+        # Make sure the name is unique
+        name: "{{ app_name }}"
+        description: 'Example application created by ansible'
+        state: present
+        blueprint_id: "{{ blueprint_id }}"
+      register: app_results
+
+    - debug:
+        var: "{{ item }}"
+      with_items:
+      - app_results.name
+      - app_results.app_id
