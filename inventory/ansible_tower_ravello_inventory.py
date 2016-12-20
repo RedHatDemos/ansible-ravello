@@ -99,7 +99,6 @@ class RavelloInventory(object):
         if not client:
                 exit (1)
 
-        #apps = client.get_applications(aspect="design")
         apps = client.get_applications()
 
         names = []
@@ -119,8 +118,6 @@ class RavelloInventory(object):
         if not client:
                 exit (1)
 
-        #Get List of application
-        #apps = client.get_applications(aspect="design")
         apps = client.get_applications()
 
         myappid = ""
@@ -134,16 +131,19 @@ class RavelloInventory(object):
         #First, define empty lists for the the tags, groups, subgroups for tags/vms, and the formatted list for tower.
         tags = {}
 
-        app = client.get_application(myappid, aspect="design")
+        app = client.get_application(myappid, aspect="deployment")
 
-        if app['design']:
+        if app['deployment']:
           appname = app['name']
-          vmsFlag = True if "vms" in app["design"] else False
+          vmsFlag = True if "vms" in app["deployment"] else False
           if vmsFlag == True:
-            vms = app['design']['vms']
+            vms = app['deployment']['vms']
             for vm in vms:
-              hostnames = vm['hostnames']
-              hostname = hostnames[0]
+              if 'externalFqdn' in vm:
+                hostname = vm['externalFqdn']
+              else:
+                hostnames = vm['hostnames']
+                hostname = hostnames[0]
               desc = vm['description']
               for line in desc.splitlines():
                 if re.match("^tag:", line):
