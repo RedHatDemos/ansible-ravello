@@ -1,6 +1,7 @@
 design:
   vms:
   - name: server1
+    description: 'tag:bastion'
     hostnames:
     - server1-REPL.rhpds.opentlc.com
     - server1.example.com
@@ -58,7 +59,10 @@ design:
     - server2.example.com
     allowNested: true
     baseVmId: 75555386
-    description: ':nohbac:'
+    description: '''
+tag:osp
+nohbac:
+'''
     bootOrder:
     - CDROM
     - DISK
@@ -125,6 +129,7 @@ design:
       ip: 192.168.1.20
     supportsCloudInit: false
   - name: server3
+    description: 'tag:appserver'
     hostnames:
     - server3.example.com
     allowNested: true
