@@ -46,7 +46,7 @@ Enter a Password:
 +
 . Verify saved credentials
 +
-WARNING: This will display your password in plain text on the terminal
+NOTE: This will display your login into on the terminla however the password is hashed.
 +
 ----
 cat ~/.ravello_login
@@ -66,6 +66,7 @@ cat ~/.ravello_login
 . Test the script to get all applications you have access to
 +
 ----
+cd <SDK_git_clone_location>/python-sdk/examples
 ./app-get-all
 <all apps you have access to>
 ----
