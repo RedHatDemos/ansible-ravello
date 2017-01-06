@@ -1,7 +1,16 @@
 # Ravello Ansible Module
 
-## Cloud Suite Demo
-For usage and requirements of the Cloud Suite Demo see: https://github.com/redhat-gpe/cloud_suite_fastrax/blob/master/modules/01_Overview/Lab_redhat-cloud-suite-deployment-demo.adoc
+## Accelerate Service Delivery Cloud Suite Demo
+For usage and requirements of the Accelerate Service Delivery Cloud Suite Demo see: https://github.com/redhat-gpe/cloud_suite_fastrax/blob/master/modules/01_Overview/Lab_redhat-cloud-suite-deployment-demo.adoc
+
+## Optimize IT Cloud Suite Demo
+For usage and requirements of the Optimize IT Cloud Suite Demo see: https://github.com/redhat-gpe/cloud_suite_fastrax/blob/master/modules/01_Overview/Lab_redhat-cloud-suite-migration-demo.adoc
+
+## Modernize Development and Operations Cloud Suite Demo
+For usage and requirements of the Modernize Development and Operations Cloud Suite Demo see: https://github.com/redhat-gpe/cloud_suite_fastrax/blob/master/modules/01_Overview/Lab_redhat-cloud-suite-modernize-devops.adoc
+
+## Scalable Infrastructure Cloud Suite Demo
+For usage and requirements of the Scalable Infrastructure Cloud Suite Demo see: https://github.com/redhat-gpe/cloud_suite_fastrax/blob/master/modules/01_Overview/Lab_redhat-cloud-suite-deployment-demo.adoc
 
 ## Prerequisites
 For instructions on setting up a system to use this repo see [Ravello_Ansible_module](Ravello_Ansible_module.adoc)
