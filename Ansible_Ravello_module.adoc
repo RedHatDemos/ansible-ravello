@@ -6,10 +6,6 @@
 
 :numbered:
 
-== Overview
-
-The purpose of the Ravello Ansible module is to provide a way to interact with Ravello using their SDK.  The goal is to be able to query, build and deploy Ravello applications using Ansible without having to interact with the Ravello UI.
-
 == Requirements
 
 . Install Ansible `http://docs.ansible.com/ansible/intro_installation.html`
@@ -40,13 +36,13 @@ cd python-sdk/examples
 +
 ----
 ./set-creds
-Enter username: yourlogin@redhat.com
+Enter username: your_login@redhat.com
 Enter a Password:
 ----
 +
 . Verify saved credentials
 +
-NOTE: This will display your login into on the terminla however the password is hashed.
+NOTE: This will display your login into on the terminal however the password is hashed.
 +
 ----
 cat ~/.ravello_login
@@ -102,9 +98,45 @@ git clone https://github.com/RedHatDemos/ansible-ravello.git
 
 . Remove any line with *applicationId:*, *creationTime:*, *loadingStatus:*, *loadingPercentage:*, *fqdn:*, *allocatedIp:*, *externalAccessState:*, *ipConfigLuid:*, and *useLuidForIpConfig:*.
 
-=== Example Application Creation w/Playbooks
+=== Deploy an Environment
 
-. Example playbook using template provided in this repo:
+. This playbook will create a blueprint based on a set of virtual machines described in *app_template.yml*. It will then create an application from this blueprint and wait for it to start.
+
+. To use the default values just run the *deploy_environment.yml. 
++
+----
+ansible-playbook deploy_environment.yml 
+----
+
++
+NOTE: It is likely there may be a conflict if the default names have already been used. Instead, specify a *unique_name* and optionally a *version* which will be used to make sure your blueprints and applications have unique names
++
+. Specify *unique_name* and *version* if desired:
++
+----
+ansible-playbook deploy_environment.yml -e "unique_name=vvaldez-demo version=1.6"
+----
+
+. It is also possible to load your own variables from a yaml file:
++
+----
+ansible-playbook deploy_environment.yml -e @vars.yml
+----
+
+. Contents of *vars.yml*:
++
+----
+unique_name=vvaldez-demo
+version=1.6
+----
+
+. To skip the blueprint creation phase, just provide an existing *blueprint_id*:
++
+----
+ansible-playbook deploy_environment.yml -e "blueprint_id=12345678"
+----
+
+. Example *deploy_environment.yml* playbook template provided in this repo:
 +
 ----
 ---
