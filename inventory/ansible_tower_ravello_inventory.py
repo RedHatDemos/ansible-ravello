@@ -22,8 +22,64 @@ import ConfigParser
 import requests
 import json
 from argparse import ArgumentParser
+import base64
+import getpass
+import logging
+import logging.handlers
 from ravello_sdk import *
-from common import *
+
+def get_credentials():
+	with open(os.path.expanduser("~/.ravello_login"),"r") as pf:
+		username = pf.readline().strip()
+		encrypted_password = pf.readline().strip()
+	password = base64.b64decode(encrypted_password).decode()
+	return username,password
+
+def get_user_credentials(username):
+ 
+	password = None
+
+	if username:
+		password = getpass.getpass('Enter a Password: ')
+	else:
+		#read user credentials from .ravello_login file in user HOMEDIR
+		username,password = get_credentials()
+
+	if not username or not password:
+		log.error('User credentials are not set')
+		print('Error: User credentials are not set')
+		return None,None
+
+	return username,password
+
+def initlog(log_file):
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
+        logpath=os.path.join(os.getcwd(),log_file)
+        handler = logging.handlers.RotatingFileHandler(logpath, maxBytes=1048576, backupCount=10)
+        fmt = '%(asctime)s: %(filename)-20s %(levelname)-8s %(message)s'
+        handler.setFormatter(logging.Formatter(fmt))
+        logger.addHandler(handler)
+
+def connect(username, password):
+        client = RavelloClient()
+        try:
+                client.login(username, password)
+        except Exception as e:
+                sys.stderr.write('Error: {!s}\n'.format(e))
+                log.error('Invalid user credentials, username {0}'.format(username))
+                print('Error: Invalid user credentials, username {0}'.format(username))
+                return None
+        return client
+
+def get_app_id(app_name,client):
+        app_id=0
+        for app in client.get_applications():
+                if app['name'].lower() == app_name.lower():
+                        app_id = app['id']
+                        break
+        return app_id
+
 
 class RavelloInventory(object):
 
