@@ -91,11 +91,12 @@ options:
   blueprint_name:
     description:
      - Specify a name for a new blueprint based on existing app
-    default: none
   blueprint_description:
     description:
      - Description of new blueprint 
-    default: none
+  app_template:
+    description:
+     - Path to a JSON file that defines an application infrastructure then creates a blueprint for further processing with follow-on playbooks.  Must use state=design
 '''
 
 EXAMPLES = '''
@@ -139,6 +140,14 @@ EXAMPLES = '''
     blueprint_name: 'my-application-bp'
     blueprint_description: 'Blueprint of app xyz'
     state: blueprint
+# Create blueprint based on app_template.yml
+- local_action:
+    module: ravello_app
+    name: 'my-new-baseline'
+    description: 'My new baseline'
+    app_template: 'app_template.yml'
+    state: design
+  register: design_results
 '''
 
 import os
