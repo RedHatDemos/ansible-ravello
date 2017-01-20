@@ -52,22 +52,11 @@ def get_user_credentials(username):
 
 	return username,password
 
-def initlog(log_file):
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
-        logpath=os.path.join(os.getcwd(),log_file)
-        handler = logging.handlers.RotatingFileHandler(logpath, maxBytes=1048576, backupCount=10)
-        fmt = '%(asctime)s: %(filename)-20s %(levelname)-8s %(message)s'
-        handler.setFormatter(logging.Formatter(fmt))
-        logger.addHandler(handler)
-
 def connect(username, password):
         client = RavelloClient()
         try:
                 client.login(username, password)
         except Exception as e:
-                sys.stderr.write('Error: {!s}\n'.format(e))
-                log.error('Invalid user credentials, username {0}'.format(username))
                 print('Error: Invalid user credentials, username {0}'.format(username))
                 return None
         return client
@@ -79,7 +68,6 @@ def get_app_id(app_name,client):
                         app_id = app['id']
                         break
         return app_id
-
 
 class RavelloInventory(object):
 
@@ -100,22 +88,22 @@ class RavelloInventory(object):
         self.read_settings()
         self.parse_cli_args()
 
-        # If --list is set then run get_apps_all
-        if self.args.list is True:
-          self.get_apps_all()
+        # If --apps is set then run get_apps_all
+        #if self.args.apps is True:
+        #  self.get_apps_all()
 
-        # If --app is set then run get_app with ID of application 
-        if self.args.app is not None:
+        # If --list is set then run get_app with ID of application 
+        if self.args.list is not None:
           self.get_app()
 
     def parse_cli_args(self):
         ''' Command line argument processing '''
 
         parser = argparse.ArgumentParser(description='Produce an Ansible Inventory file based on Ravello')
-        parser.add_argument('--app', action='store',
-                           help='Get the groups and hostname from a specific application specifying the app name')
-        parser.add_argument('--list', action='store_true', default=False,
+        parser.add_argument('--apps', action='store_false',
                            help='List all app names (default: False)')
+        parser.add_argument('--list', action='store', default=False,
+                           help='Get the group(s) and hostname(s) from a specific application by specifying the app name')
         self.args = parser.parse_args()
 
     def read_settings(self):
@@ -133,27 +121,33 @@ class RavelloInventory(object):
 
         config.read(config_paths)
 
-        self.ravello_username, self.ravello_password  = get_user_credentials(None)
-        if not self.ravello_username or not self.ravello_password:
-                exit(1)
+        # Get Auth from INI
+        INI=True
+        if config.has_option('ravello', 'username'):
+            self.ravello_username = config.get('ravello', 'username')
+        else:
+            self.ravello_username = "none"
+            INI=False
 
-        # Ravello Username
-        #if config.has_option('ravello', 'username'):
-        #    self.ravello_username = config.get('ravello', 'username')
-        #else:
-        #    self.ravello_username = "none"
-#
-#        # Ravello Password
-#        if config.has_option('ravello', 'password'):
-#            self.ravello_password = config.get('ravello', 'password')
-#        else:
-#            self.ravello_password = "none"
+        if config.has_option('ravello', 'password'):
+            self.ravello_password = config.get('ravello', 'password')
+        else:
+            self.ravello_password = "none"
+            INI=False
+
+        if INI is False:
+            self.ravello_username, self.ravello_password  = get_user_credentials(None)
+
+        if not self.ravello_username or not self.ravello_password:
+            print("ERROR: Could not get Ravello credentials from INI file or .ravello_login (SDK Auth)")
+            exit(1)
+
 
     def get_apps_all(self):
         #Connect to Ravello
         client = connect(self.ravello_username, self.ravello_password)
         if not client:
-                exit (1)
+            exit (1)
 
         apps = client.get_applications()
 
@@ -169,7 +163,7 @@ class RavelloInventory(object):
 
     def get_app(self):
         #Connect to Ravello
-        myappname = self.args.app
+        myappname = self.args.list
         client = connect(self.ravello_username, self.ravello_password)
         if not client:
                 exit (1)
@@ -185,7 +179,9 @@ class RavelloInventory(object):
               myappid = app['id']
 
         #First, define empty lists for the the tags, groups, subgroups for tags/vms, and the formatted list for tower.
-        tags = {}
+        groups = {}
+        groups['_meta'] = {}
+        groups['_meta']['hostvars'] = {}
 
         app = client.get_application(myappid, aspect="deployment")
 
@@ -195,22 +191,28 @@ class RavelloInventory(object):
           if vmsFlag == True:
             vms = app['deployment']['vms']
             for vm in vms:
-              if 'externalFqdn' in vm:
-                hostname = vm['externalFqdn']
-              else:
-                hostnames = vm['hostnames']
-                hostname = hostnames[0]
+              #if 'externalFqdn' in vm:
+              #  hostname = vm['externalFqdn']
+              #else:
+              hostnames = vm['hostnames']
+              hostname = hostnames[0]
               desc = vm['description']
               for line in desc.splitlines():
                 if re.match("^tag:", line):
                   t = line.split(':')
                   tag = t[1]
-                  if tag in tags.keys():
-                    tags[tag].append(hostname)
+                  if tag in groups.keys():
+                    groups[tag]['hosts'].append(hostname)
                   else:
-                    tags[tag] = [hostname]
+                    groups[tag] = {}
+                    groups[tag]['hosts'] = {}
+                    groups[tag]['hosts'] = [hostname]
+                  if 'externalFqdn' in vm:
+                    groups['_meta']['hostvars'][hostname] = { 'externalFqdn': vm['externalFqdn'] }
+                  if tag == 'bastion' and 'externalFqdn' in vm:
+                    groups['_meta']['hostvars'][hostname].update({ 'bastion': True })
                     
-        print json.dumps(tags, indent=5)  
+        print json.dumps(groups, indent=5)  
 
 #Run the script
 RavelloInventory()
