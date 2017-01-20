@@ -38,13 +38,14 @@ module: ravello_app
 short_description: Create/delete/start/stop an application in ravellosystems
 description:
      - Create/delete/start/stop an application in ravellosystems and wait for it (optionally) to be 'running'
-	 - list state will return a fqdn list of exist application hosts with their external services
+     - list state will return a fqdn list of exist application hosts with their external services
+     - blueprint state wil create a blueprint from an existing app (must provide blueprint_name)
 options:
   state:
     description:
      - Indicate desired state of the target.
     default: present
-    choices: ['design', 'present', 'started', 'absent', 'stopped','list']
+    choices: ['design', 'present', 'started', 'absent', 'stopped','list','blueprint']
   username:
      description:
       - ravello username
@@ -87,6 +88,14 @@ options:
     description:
      - How long before wait gives up, in seconds.
     default: 600
+  blueprint_name:
+    description:
+     - Specify a name for a new blueprint based on existing app
+    default: none
+  blueprint_description:
+    description:
+     - Description of new blueprint 
+    default: none
 '''
 
 EXAMPLES = '''
@@ -123,12 +132,13 @@ EXAMPLES = '''
     module: ravello_app
     name: 'my-application-name'
     state: absent
-# Delete application example from matryoshka (nested)
+# Create blueprint from existing app
 - local_action:
     module: ravello_app
-    url: 'https://matryoshka.com/api/v1' or https://matryoshka.com/services
     name: 'my-application-name'
-    state: absent
+    blueprint_name: 'my-application-bp'
+    blueprint_description: 'Blueprint of app xyz'
+    state: blueprint
 '''
 
 import os
