@@ -5,7 +5,6 @@
       when: not blueprint_id is defined
     - role: application_create_from_blueprint
       blueprint_id: "{{ design_results.blueprint_id }}"
-      wait_timeout: "{{ wait_timeout }}"
     - role: blueprint_create_from_application
       application_name: "{{ app_results.name }}"
       blueprint_name: "{{ blueprint_name + '-modified' }}"
