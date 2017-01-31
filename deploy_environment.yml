@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   roles:
+    - role: warm_up
     - role: blueprint_design
       when: not blueprint_id is defined
     - role: application_create_from_blueprint
