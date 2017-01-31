@@ -219,7 +219,7 @@ def main():
     argument_spec=dict(
             # for nested babu only
             url=dict(required=False, type='str'),
-            state=dict(default='present', choices=['design', 'present', 'started', 'absent', 'stopped', 'list', 'blueprint','blueprint_delete']),
+            state=dict(default='present', choices=['design', 'present', 'started', 'absent', 'stopped', 'list', 'blueprint','blueprint_delete','test']),
             username=dict(required=False, type='str'),
             password=dict(required=False, type='str'),
             name=dict(required=True, type='str'),
@@ -276,6 +276,10 @@ def main():
           create_blueprint(module, client, client.create_blueprint)
         elif module.params.get('state') == 'blueprint_delete':
           delete_blueprint(module, client, client.delete_blueprint)
+        elif module.params.get('state') == 'test':
+          log_contents = log_capture_string.getvalue()
+          log_capture_string.close()
+          module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
