@@ -1,6 +1,7 @@
 ---
 unique_name: 'example'
 version: '1.0'
+wait_timeout: '1800'
 blueprint_name: "{{ 'ansible-' + unique_name + '-bp-v' + version }}"
 blueprint_description: "{{ unique_name + ' blueprint created by ansible' }}"
 application_name: "{{ 'ansible-' + unique_name + '-app-v' + version }}"

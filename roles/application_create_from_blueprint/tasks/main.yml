@@ -15,6 +15,7 @@
     description: "{{ application_description }}"
     state: present
     blueprint_id: "{{ blueprint_id }}"
+    wait_timeout: "{{ wait_timeout }}"
   register: app_results
 
 - debug:
