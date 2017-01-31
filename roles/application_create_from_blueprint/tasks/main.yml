@@ -7,6 +7,7 @@
     - application_name
     - application_description
     - blueprint_id
+    - wait_timeout
 
 - name: create application based on deployed blueprint and wait for start
   local_action:
