@@ -364,7 +364,7 @@ def delete_blueprint(module, client, runner_func):
         blueprint_id = client.get_blueprint(blueprint_name)
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.exit_json(changed=True, name='Found Blueprint: %s .' % blueprint_name,stdout='%s' % log_contents, blueprint_id='%s' % blueprint_id)
+        module.exit_json(changed=True, name='%s' % blueprint_name,stdout='%s' % log_contents, blueprint_id='%s' % blueprint_id)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
