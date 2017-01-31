@@ -359,9 +359,17 @@ def create_blueprint(module, client, runner_func):
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
 
 def delete_blueprint(module, client, runner_func):
+    blueprint_name = module.params.get("blueprint_name")
     try:
-        blueprint_name = module.params.get("blueprint_name")
-        blueprint_id=client.get_blueprint(blueprint_name)
+        blueprint_id = client.get_blueprint(blueprint_name)
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='Found Blueprint: %s .' % blueprint_name,stdout='%s' % log_contents, blueprint_id='%s' % blueprint_id)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = 'ERROR: Cloud not find blueprint: %s' % e,stdout='%s' % log_contents)        
+    try:
         client.delete_blueprint(blueprint_id)
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
@@ -370,6 +378,34 @@ def delete_blueprint(module, client, runner_func):
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
+	 
+def action_on_app(module, client, runner_func, waiter_func, action):
+    try:
+        app_name = module.params.get("name")
+        app = client.get_application_by_name(app_name)
+        runner_func(app['id'])
+        waiter_func()
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+	 
+def action_on_app(module, client, runner_func, waiter_func, action):
+    try:
+        app_name = module.params.get("name")
+        app = client.get_application_by_name(app_name)
+        runner_func(app['id'])
+        waiter_func()
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 	 
 def action_on_app(module, client, runner_func, waiter_func, action):
     try:
