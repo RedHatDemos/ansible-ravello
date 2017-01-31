@@ -19,3 +19,6 @@
 - debug:
     var: design_results
     verbosity: 1
+  with_items:
+    - design_results.name
+    - design_results.blueprint_id

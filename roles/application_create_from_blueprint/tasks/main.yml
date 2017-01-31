@@ -28,8 +28,8 @@
 
 - name: delete blueprint used to create application
   local_action:
-    blueprint_name: "{{ blueprint_name + '-bp' }}"
-    blueprint_id: "{{ blueprint_id }}"
+    blueprint_name: "{{ design_results.name + '-bp' }}"
+    blueprint_id: "{{ design_results.blueprint_id }}"
     name: "{{ app_results.name }}"
     module: ravello_app
     state: blueprint_delete
