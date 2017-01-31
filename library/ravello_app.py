@@ -490,7 +490,7 @@ def create_app_and_publish(client, module):
     _wait_for_state(client,'STARTED',module)
     log_contents = log_capture_string.getvalue()
     log_capture_string.close()
-    module.exit_json(changed=True, name='Created and published application: %s .' % module.params.get("name"),stdout='%s' % log_contents, app_id='%s' % app['id'])
+    module.exit_json(changed=True, name='%s' % module.params.get("name"),stdout='%s' % log_contents, app_id='%s' % app['id'])
 
 # import module snippets
 import ansible
