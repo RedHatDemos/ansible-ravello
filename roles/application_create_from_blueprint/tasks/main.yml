@@ -23,3 +23,13 @@
   with_items:
   - app_results.name
   - app_results.app_id
+
+- name: delete blueprint used to create application
+  local_action:
+    module: ravello_app
+    state: blueprint-delete
+  register: bp_delete_results
+
+- debug:
+    var: bp_delete_results
+    verbosity: 1
