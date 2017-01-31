@@ -1,13 +1,15 @@
 ---
-- name: create application based on deployed blueprint and wait for start
+- name: display variables for create application based on deployed blueprint and wait for start
   debug:
     var: "{{ item }}"
+    verbosity: 1
   with_items:
     - application_name
     - application_description
     - blueprint_id
 
-- local_action:
+- name: create application based on deployed blueprint and wait for start
+  local_action:
     module: ravello_app
     name: "{{ application_name }}"
     description: "{{ application_description }}"
@@ -17,6 +19,7 @@
 
 - debug:
     var: "{{ item }}"
+    verbosity: 1
   with_items:
   - app_results.name
   - app_results.app_id
