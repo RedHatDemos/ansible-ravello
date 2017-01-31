@@ -17,7 +17,7 @@
   register: design_results
 
 - debug:
-    var: design_results
+    var: "{{ item }}"
     verbosity: 1
   with_items:
     - design_results.name
