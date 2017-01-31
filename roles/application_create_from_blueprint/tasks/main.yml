@@ -28,8 +28,9 @@
 
 - name: delete blueprint used to create application
   local_action:
+    blueprint_name: "{{ blueprint_name }}"
     module: ravello_app
-    state: blueprint-delete
+    state: blueprint_delete
   register: bp_delete_results
 
 - debug:
