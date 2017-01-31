@@ -7,6 +7,7 @@
     - application_name
     - application_description
     - blueprint_id
+    - wait_timeout
 
 - name: create application based on deployed blueprint and wait for start
   local_action:
@@ -15,6 +16,7 @@
     description: "{{ application_description }}"
     state: present
     blueprint_id: "{{ blueprint_id }}"
+    wait_timeout: "{{ wait_timeout }}"
   register: app_results
 
 - debug:
@@ -23,3 +25,13 @@
   with_items:
   - app_results.name
   - app_results.app_id
+
+- name: delete blueprint used to create application
+  local_action:
+    module: ravello_app
+    state: blueprint-delete
+  register: bp_delete_results
+
+- debug:
+    var: bp_delete_results
+    verbosity: 1
