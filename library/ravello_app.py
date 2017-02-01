@@ -277,9 +277,7 @@ def main():
         elif module.params.get('state') == 'blueprint_delete':
           delete_blueprint(module, client, client.delete_blueprint)
         elif module.params.get('state') == 'test':
-          log_contents = log_capture_string.getvalue()
-          log_capture_string.close()
-          module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+          module.exit_json(msg = 'Authentication to Ravello successful')
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
