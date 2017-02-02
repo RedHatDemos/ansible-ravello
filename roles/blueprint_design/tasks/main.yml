@@ -1,5 +1,5 @@
 ---
-- name: display variables for create blueprint based on app_template.yml
+- name: display variables for create blueprint based on {{ app_template }}
   debug:
     var: "{{ item }}"
     verbosity: 1
@@ -7,12 +7,12 @@
     - blueprint_name
     - blueprint_description
 
-- name: create blueprint based on app_template.yml
+- name: create blueprint based on {{ app_template }}
   local_action:
     module: ravello_app
     name: "{{ blueprint_name }}"
     description: "{{ blueprint_description }}"
-    app_template: 'app_template.yml'
+    app_template: '{{ app_template}}'
     state: design
   register: design_results
 

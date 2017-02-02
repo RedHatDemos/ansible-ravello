@@ -1,0 +1,48 @@
+vms:
+- name: "server1"
+  tag: "bastion"
+  description: "nohbac: true"
+  numCpus: 1
+  memorySize:
+    unit: "GB"
+    value: 4
+  hostnames:
+  - "server1-REPL.rhpds.opentlc.com"
+  - "server1.example.com"
+  hardDrives:
+  - index: 0
+    imageName: "rhel-guest-image-7.3-35.x86_64"
+    boot: true
+    controller: "virtio"
+    name: "root disk"
+    size:
+      unit: "GB"
+      value: 40
+    type: "DISK"
+  - index: 1
+    controller: "virtio"
+    name: "second disk"
+    size:
+      unit: "GB"
+      value: 10
+    type: "DISK"
+  networkConnections:
+  - name: "eth0"
+    device:
+      index: 0
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.1.10"
+      hasPublicIp: true
+      needElasticIp: false
+  stopTimeOut: "300"
+  suppliedServices:
+  - external: true
+    ip: "192.168.1.10"
+    name: "ssh"
+    portRange: "22"
+    protocol: "SSH"
+  supportsCloudInit: true
+  keypairName: "opentlc-admin-backdoor"
