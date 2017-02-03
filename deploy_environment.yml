@@ -7,4 +7,4 @@
     - role: application_create_from_blueprint
       blueprint_id: "{{ design_results.blueprint_id }}"
     - role: blueprint_create_from_application
-      application_name: "{{ app_results.name }}"
+      application_name: "{{ app_results.app_name }}"

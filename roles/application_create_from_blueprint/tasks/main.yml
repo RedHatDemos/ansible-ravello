@@ -23,14 +23,14 @@
     var: "{{ item }}"
     verbosity: 1
   with_items:
-  - app_results.name
+  - app_results.app_name
   - app_results.app_id
 
 - name: delete blueprint used to create application
   local_action:
-    blueprint_name: "{{ design_results.name + '-bp' }}"
+    blueprint_name: "{{ design_results.app_name + '-bp' }}"
     blueprint_id: "{{ design_results.blueprint_id }}"
-    app_name: "{{ app_results.name }}"
+    app_name: "{{ app_results.app_name }}"
     module: ravello_app
     state: blueprint_delete
   register: bp_delete_results

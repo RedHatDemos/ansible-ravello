@@ -275,46 +275,55 @@ def main():
         # supports_check_mode = True
     )
     if not HAS_RAVELLO_SDK:
-        module.fail_json(msg='ravello_sdk required for this module')
-    try:
-        #username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None)) 
-        #password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
-       # 
-       # client = RavelloClient(username, password, module.params.get('url'))
+      module.fail_json(msg='ravello_sdk required for this module')
 
-        #Get user credentials
-        username, password  = get_user_credentials(None)
-        if not username or not password:
-                exit(1)
-
-        #Connect to Ravello
-        client = connect(username, password)
-        if not client:
-                exit (1)
-        if module.params.get('state') == 'design':
-          create_app(client, module)
-        elif module.params.get('state') == 'present':
-          create_app_and_publish(client, module)
-        elif module.params.get('state') == 'absent':
-          action_on_app(module, client, client.delete_application, lambda: None, 'Deleted')
-        elif module.params.get('state') == 'started':
-          action_on_app(module, client, client.start_application, functools.partial(_wait_for_state,client,'STARTED',module), 'Started')
-        elif module.params.get('state') == 'stopped':
-          action_on_app(module, client, client.stop_application, functools.partial(_wait_for_state,client,'STOPPED',module), 'Stopped')
-        elif module.params.get('state') == 'list':
-          list_app(client, module)
-        elif module.params.get('state') == 'blueprint':
-          create_blueprint(module, client, client.create_blueprint)
-        elif module.params.get('state') == 'blueprint_delete':
-          action_on_blueprint(module, client, client.delete_blueprint)
-        elif module.params.get('state') == 'blueprint_location':
-          action_on_blueprint(module, client, client.get_blueprint_publish_locations)
-        elif module.params.get('state') == 'test':
-          module.exit_json(msg = 'Authentication to Ravello successful')
-    except Exception, e:
+    # Get User credentials from Ansible (not too secure) or ENV variables (a little more secure)
+    username = module.params.get('username', os.environ.get('RAVELLO_USERNAME', None)) 
+    password = module.params.get('password', os.environ.get('RAVELLO_PASSWORD', None))
+    if username and password:
+      try:
+        client = RavelloClient(username, password, module.params.get('url'))
+      except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+        module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using ansiblie provided credentials %s' % e,stdout='%s' % log_contents)
+    else:
+      #Get user credentials from SDK auth cache file (better)
+      try:
+        username, password  = get_user_credentials(None)
+      except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = 'ERROR: Failed to retrieve credentials from Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
+      if not username or not password:
+        module.fail_json(msg = 'ERROR: Unable to get any Ravello credentials!')
+      try:
+        client = connect(username, password)
+      except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
+
+    if module.params.get('state') == 'design':
+      create_app(client, module)
+    elif module.params.get('state') == 'present':
+      create_app_and_publish(client, module)
+    elif module.params.get('state') == 'absent':
+      action_on_app(module, client, client.delete_application, lambda: None, 'Deleted')
+    elif module.params.get('state') == 'started':
+      action_on_app(module, client, client.start_application, functools.partial(_wait_for_state,client,'STARTED',module), 'Started')
+    elif module.params.get('state') == 'stopped':
+      action_on_app(module, client, client.stop_application, functools.partial(_wait_for_state,client,'STOPPED',module), 'Stopped')
+    elif module.params.get('state') == 'list':
+      list_app(client, module)
+    elif module.params.get('state') == 'blueprint':
+      create_blueprint(module, client, client.create_blueprint)
+    elif module.params.get('state') == 'blueprint_delete':
+      action_on_blueprint(module, client, client.delete_blueprint)
+    elif module.params.get('state') == 'blueprint_location':
+      action_on_blueprint(module, client, client.get_blueprint_publish_locations)
+    elif module.params.get('state') == 'test':
+      module.exit_json(msg = 'Authentication to Ravello successful')
 
 def _wait_for_state(client, state, module):
     if module.params.get('wait') == False:
@@ -367,7 +376,21 @@ def list_app(client, module):
             results.append({'host': dest, 'port': port})
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.exit_json(changed=True, name='%s' % app_name, results='%s' % results,stdout='%s' % log_contents)
+        module.exit_json(changed=True, app_name='%s' % app_name, results='%s' % results,stdout='%s' % log_contents)
+    except Exception, e:
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+
+def action_on_app(module, client, runner_func, waiter_func, action):
+    try:
+        app_name = module.params.get("app_name")
+        app = client.get_application_by_name(app_name)
+        runner_func(app['id'])
+        waiter_func()
+        log_contents = log_capture_string.getvalue()
+        log_capture_string.close()
+        module.exit_json(changed=True, app_name='%s application: %s' %(action, app_name),stdout='%s' % log_contents)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
@@ -383,7 +406,7 @@ def create_blueprint(module, client, runner_func):
         blueprint_id=((runner_func(blueprint_dict))['_href'].split('/'))[2]
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.exit_json(changed=True, name='%s' % app_name, blueprint_id='%s' % blueprint_id)
+        module.exit_json(changed=True, app_name='%s' % app_name, blueprint_name='%s' % blueprint_name, blueprint_id='%s' % blueprint_id)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
@@ -399,7 +422,7 @@ def action_on_blueprint(module, client, runner_func):
         output = runner_func(blueprint_id)
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.exit_json(changed=True, name='%s' % blueprint_name,stdout='%s' % log_contents, blueprint_id='%s' % blueprint_id, output='%s' % output)
+        module.exit_json(changed=True, stdout='%s' % log_contents, blueprint_id='%s' % blueprint_id, output='%s' % output)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
@@ -598,7 +621,7 @@ def create_app(client, module):
     try:
         blueprint_id=((client.create_blueprint(blueprint_dict))['_href'].split('/'))[2]
         client.delete_application(created_app)
-        module.exit_json(changed=True, name='%s' % app_name, blueprint_id='%s' % blueprint_id)
+        module.exit_json(changed=True, app_name='%s' % app_name, blueprint_name='%s' % blueprint_name, blueprint_id='%s' % blueprint_id)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
