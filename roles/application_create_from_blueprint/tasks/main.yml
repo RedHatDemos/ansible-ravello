@@ -12,7 +12,7 @@
 - name: create application based on deployed blueprint and wait for start
   local_action:
     module: ravello_app
-    name: "{{ application_name }}"
+    app_name: "{{ application_name }}"
     description: "{{ application_description }}"
     state: present
     blueprint_id: "{{ blueprint_id }}"
@@ -30,7 +30,7 @@
   local_action:
     blueprint_name: "{{ design_results.name + '-bp' }}"
     blueprint_id: "{{ design_results.blueprint_id }}"
-    name: "{{ app_results.name }}"
+    app_name: "{{ app_results.name }}"
     module: ravello_app
     state: blueprint_delete
   register: bp_delete_results

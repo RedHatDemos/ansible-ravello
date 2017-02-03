@@ -11,7 +11,7 @@
 - name: stop application
   local_action:
     module: ravello_app
-    name: "{{ application_name }}"
+    app_name: "{{ application_name }}"
     state: stopped
   register: app_stop_results
 
@@ -22,7 +22,7 @@
 - name: create blueprint from application
   local_action:
     module: ravello_app
-    name: "{{ application_name }}"
+    app_name: "{{ application_name }}"
     blueprint_name: "{{ blueprint_name }}"
     blueprint_description: "{{ 'blueprint created via ansible from ' + application_name }}"
     state: blueprint

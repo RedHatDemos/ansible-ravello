@@ -10,7 +10,7 @@
 - name: create blueprint based on {{ app_template }}
   local_action:
     module: ravello_app
-    name: "{{ blueprint_name }}"
+    app_name: "{{ blueprint_name }}"
     description: "{{ blueprint_description }}"
     app_template: '{{ app_template}}'
     state: design

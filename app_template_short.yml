@@ -1,14 +1,14 @@
 vms:
-- name: "server1"
+- name: "Bastion Host"
   tag: "bastion"
-  description: "nohbac: true"
+  description: "Bastion Host\nnohbac: true\n"
   numCpus: 1
   memorySize:
     unit: "GB"
-    value: 4
+    value: 1
   hostnames:
-  - "server1-REPL.rhpds.opentlc.com"
-  - "server1.example.com"
+  - "bastion-REPL.rhpds.opentlc.com"
+  - "bastion.example.com"
   hardDrives:
   - index: 0
     imageName: "rhel-guest-image-7.3-35.x86_64"
@@ -19,24 +19,25 @@ vms:
       unit: "GB"
       value: 40
     type: "DISK"
-  - index: 1
-    controller: "virtio"
-    name: "second disk"
-    size:
-      unit: "GB"
-      value: 10
-    type: "DISK"
   networkConnections:
   - name: "eth0"
     device:
       index: 0
       deviceType: "virtio"
-      useAutomaticMac: true
+      useAutomaticMac: false
+      mac: "2c:c2:60:14:42:52"
     ipConfig:
       autoIpConfig:
         reservedIp: "192.168.1.10"
       hasPublicIp: true
-      needElasticIp: false
+  - name: "eth1"
+    device:
+      index: 1
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.2.10"
   stopTimeOut: "300"
   suppliedServices:
   - external: true

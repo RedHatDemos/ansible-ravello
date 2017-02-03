@@ -1,182 +1,190 @@
-design:
-  vms:
-  - name: server1
-    description: 'tag:bastion'
-    hostnames:
-    - server1-REPL.rhpds.opentlc.com
-    - server1.example.com
-    baseVmId: 75555386
-    bootOrder:
-    - CDROM
-    - DISK
-    hardDrives:
-    - boot: true
-      controller: virtio
-      id: 4999322139374374
+vms:
+- name: "Bastion Host"
+  tag: "bastion"
+  description: "Bastion Host\nnohbac: true\n"
+  numCpus: 1
+  memorySize:
+    unit: "GB"
+    value: 1
+  hostnames:
+  - "bastion-REPL.rhpds.opentlc.com"
+  - "bastion.example.com"
+  hardDrives:
+  - index: 0
+    imageName: "rhel-guest-image-7.3-35.x86_64"
+    boot: true
+    controller: "virtio"
+    name: "root disk"
+    size:
+      unit: "GB"
+      value: 40
+    type: "DISK"
+  networkConnections:
+  - name: "eth0"
+    device:
       index: 0
-      name: root
-      size:
-        unit: GB
-        value: 8
-      type: DISK
-    - boot: false
-      controller: virtio
+      deviceType: "virtio"
+      useAutomaticMac: false
+      mac: "2c:c2:60:14:42:52"
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.1.10"
+      hasPublicIp: true
+  - name: "eth1"
+    device:
       index: 1
-      name: vol
-      size:
-        unit: GB
-        value: 10
-      type: DISK
-    numCpus: 1
-    memorySize:
-      unit: GB
-      value: 4
-    networkConnections:
-    - name: eth0
-      accessPort: true
-      device:
-        deviceType: virtio
-        index: 0
-        useAutomaticMac: true
-      ipConfig:
-        autoIpConfig:
-          reservedIp: 192.168.1.10
-        externalAccessState: CONDITIONAL_PUBLIC_IP
-        hasPublicIp: true
-        needElasticIp: false
-    powerOffOnStopTimeOut: true
-    stopTimeOut: '300'
-    suppliedServices:
-    - external: true
-      ip: 192.168.1.10
-      name: ssh
-      portRange: '22'
-      protocol: SSH
-    supportsCloudInit: true
-    keypairName: opentlc-admin-backdoor
-  - name: server2
-    hostnames:
-    - server2.example.com
-    allowNested: true
-    baseVmId: 75555386
-    description: '''
-tag:osp
-nohbac:
-'''
-    bootOrder:
-    - CDROM
-    - DISK
-    hardDrives:
-    - boot: true
-      controller: virtio
-      id: 4999322139374374
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.2.10"
+  stopTimeOut: "300"
+  suppliedServices:
+  - external: true
+    ip: "192.168.1.10"
+    name: "ssh"
+    portRange: "22"
+    protocol: "SSH"
+  supportsCloudInit: true
+  keypairName: "opentlc-admin-backdoor"
+- name: "App Server"
+  tag: "app_server"
+  description: "App Server"
+  numCpus: 2
+  memorySize:
+    unit: "GB"
+    value: 4
+  hostnames:
+  - "app-REPL.rhpds.opentlc.com"
+  - "app.example.com"
+  hardDrives:
+  - index: 0
+    imageName: "rhel-guest-image-7.3-35.x86_64"
+    boot: true
+    controller: "virtio"
+    name: "root disk"
+    size:
+      unit: "GB"
+      value: 40
+    type: "DISK"
+  networkConnections:
+  - name: "eth0"
+    device:
       index: 0
-      name: root
-      size:
-        unit: GB
-        value: 8
-      type: DISK
-    - boot: false
-      controller: virtio
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.1.20"
+  - name: "eth1"
+    device:
       index: 1
-      name: vol
-      size:
-        unit: GB
-        value: 10
-      type: DISK
-    memorySize:
-      unit: GB
-      value: 4
-    numCpus: 1
-    networkConnections:
-    - name: eth0
-      accessPort: true
-      device:
-        deviceType: virtio
-        index: 0
-        useAutomaticMac: true
-      ipConfig:
-        autoIpConfig:
-          reservedIp: 192.168.1.20
-        externalAccessState: CONDITIONAL_PUBLIC_IP
-        hasPublicIp: true
-    - name: eth1
-      accessPort: true
-      device:
-        deviceType: virtio
-        index: 1
-        useAutomaticMac: true
-      ipConfig:
-        externalAccessState: CONDITIONAL_PUBLIC_IP
-        hasPublicIp: false
-        needElasticIp: false
-        staticIpConfig:
-          ip: 192.168.2.20
-          mask: 255.255.255.0
-    powerOffOnStopTimeOut: true
-    stopTimeOut: '300'
-    requiresKeypair: false
-    suppliedServices:
-    - name: http
-      external: true
-      portRange: '443'
-      protocol: HTTPS
-      ip: 192.168.1.20
-    - name: https
-      external: true
-      portRange: '80'
-      protocol: HTTP
-      ip: 192.168.1.20
-    supportsCloudInit: false
-  - name: server3
-    description: 'tag:appserver'
-    hostnames:
-    - server3.example.com
-    allowNested: true
-    baseVmId: 75555386
-    hardDrives:
-    - boot: true
-      controller: virtio
-      id: 4999322139374374
-      index: 0
-      name: root
-      size:
-        unit: GB
-        value: 8
-      type: DISK
-    memorySize:
-      unit: GB
-      value: 4
-    numCpus: 2
-    networkConnections:
-    - name: eth0
-      accessPort: true
-      device:
-        deviceType: virtio
-        index: 0
-        pciSlot: 1
-        useAutomaticMac: true
-      ipConfig:
-        autoIpConfig:
-          reservedIp: 192.168.1.30
-        externalAccessState: CONDITIONAL_PUBLIC_IP
-        hasPublicIp: false
-        needElasticIp: false
-    - name: eth1
-      accessPort: true
-      device:
-        deviceType: virtio
-        index: 1
-        mac: 2c:c2:60:2e:fd:69
-        useAutomaticMac: false
-      ipConfig:
-        externalAccessState: CONDITIONAL_PUBLIC_IP
-        hasPublicIp: false
-        needElasticIp: false
-        staticIpConfig:
-          ip: 192.168.2.30
-          mask: 255.255.255.0
-    powerOffOnStopTimeOut: true
-    stopTimeOut: '300'
-    supportsCloudInit: false
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.2.20"
+  stopTimeOut: "300"
 
+- name: "Web Server"
+  tag: "web_server"
+  description: "Web Server"
+  numCpus: 2
+  memorySize:
+    unit: "GB"
+    value: 2
+  hostnames:
+  - "www-REPL.rhpds.opentlc.com"
+  - "www.example.com"
+  hardDrives:
+  - index: 0
+    imageName: "rhel-guest-image-7.3-35.x86_64"
+    boot: true
+    controller: "virtio"
+    name: "root disk"
+    size:
+      unit: "GB"
+      value: 40
+    type: "DISK"
+  - index: 1
+    controller: "virtio"
+    name: "blank web root disk"
+    size:
+      unit: "GB"
+      value: 10
+    type: "DISK"
+  networkConnections:
+  - name: "eth0"
+    device:
+      index: 0
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.1.30"
+      hasPublicIp: true
+  stopTimeOut: "300"
+  suppliedServices:
+  - ip: "192.168.1.30"
+    name: "http"
+    portRange: "80"
+    protocol: "HTTP"
+  - ip: "192.168.1.30"
+    name: "https"
+    portRange: "443"
+    protocol: "HTTPS"
+  - ip: "192.168.1.30"
+    name: "example TCP"
+    portRange: "8080"
+    protocol: "TCP"
+  - ip: "192.168.1.30"
+    name: "example UDP"
+    portRange: "901"
+    protocol: "UDP"
+  supportsCloudInit: true
+  keypairName: "opentlc-admin-backdoor"
+- name: "DB Server"
+  tag: "db_server"
+  description: "DB Server"
+  numCpus: 4
+  memorySize:
+    unit: "GB"
+    value: 4
+  hostnames:
+  - "db-REPL.rhpds.opentlc.com"
+  - "db.example.com"
+  hardDrives:
+  - index: 0
+    imageName: "rhel-guest-image-7.3-35.x86_64"
+    boot: true
+    controller: "virtio"
+    name: "root disk"
+    size:
+      unit: "GB"
+      value: 40
+    type: "DISK"
+  - index: 1
+    controller: "virtio"
+    name: "blank db disk"
+    size:
+      unit: "GB"
+      value: 20
+    type: "DISK"
+  networkConnections:
+  - name: "eth0"
+    device:
+      index: 0
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.1.40"
+  - name: "eth1"
+    device:
+      index: 1
+      deviceType: "virtio"
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: "192.168.2.40"
+  stopTimeOut: "300"

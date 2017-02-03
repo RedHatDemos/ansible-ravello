@@ -15,7 +15,7 @@
 - name: test login
   local_action:
     module: ravello_app
-    name: "{{ application_name }}"
+    app_name: "{{ application_name }}"
     state: test
   register: test_results
 

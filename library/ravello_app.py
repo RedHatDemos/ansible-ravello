@@ -205,7 +205,7 @@ def connect(username, password):
 def get_app_id(app_name,client):
         app_id=0
         for app in client.get_applications():
-                if app['name'].lower() == app_name.lower():
+                if app['app_name'].lower() == app_name.lower():
                         app_id = app['id']
                         break
         if app_id == 0:
@@ -253,7 +253,8 @@ def main():
             state=dict(default='present', choices=['design', 'present', 'started', 'absent', 'stopped', 'list', 'test', 'blueprint','blueprint_delete','blueprint_location']),
             username=dict(required=False, type='str'),
             password=dict(required=False, type='str'),
-            name=dict(required=True, type='str'),
+            name=dict(required=False, type='str'),
+            app_name=dict(required=False, type='str'),
             description=dict(required=False, type='str'),
             blueprint_id=dict(required=False, type='str'),
             app_template=dict(required=False, default=None, type='path'),
@@ -325,7 +326,7 @@ def _wait_for_state(client, state, module):
         if app_id > 0:
             app = client.get_application(app_id)
         else:
-            app =  client.get_application_by_name(module.params.get('name'))
+            app =  client.get_application_by_name(module.params.get('app_name'))
             app_id = app['id']
         states = list(set((vm['state'] for vm in app.get('deployment', {}).get('vms', []))))
         if "ERROR" in states:
@@ -354,7 +355,7 @@ def get_list_app_vm_result(app, vm, module):
 	            
 def list_app(client, module):
     try:
-        app_name = module.params.get("name")
+        app_name = module.params.get("app_name")
         app = client.get_application_by_name(app_name)
         
         results = []
@@ -373,7 +374,7 @@ def list_app(client, module):
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
 def create_blueprint(module, client, runner_func):
-    app_name = module.params.get("name")
+    app_name = module.params.get("app_name")
     app = client.get_application_by_name(app_name)
     blueprint_name = module.params.get("blueprint_name")
     blueprint_description = module.params.get("blueprint_description")
@@ -405,7 +406,14 @@ def action_on_blueprint(module, client, runner_func):
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
 
 def create_app(client, module):
-    app_name = module.params.get("name")
+    app_name = module.params.get("app_name")
+    cap = client.get_applications({'name': app_name})
+    if cap:
+      module.fail_json(msg='ERROR: Application %s already exists!' % app_name, changed=False)
+    blueprint_name = app_name + "-bp"
+    bp = client.get_blueprints({'name': blueprint_name})
+    if bp:
+      module.fail_json(msg='ERROR: Blueprint %s already exists!' % blueprint_name, changed=False)
     app_description = module.params.get("description")
     if not module.params.get("app_template"):
         module.fail_json(msg='Must supply an app_template for design state.', changed=False)
@@ -416,95 +424,176 @@ def create_app(client, module):
       except yaml.YAMLError as exc:
         print(exc)
     rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
-    app = []
-    new_app = app['design']
+    new_app = {}
     new_app['name'] = "tmp-app-build-" + rand_str(10)
     new_app['description'] = app_description
+    new_app['design'] = {}
+    new_app['design']['vms'] = []
     for vm in read_app['vms']:
-      if vm['tag']:
-        desc = "tag:" + vm['tag'] + "\n"
-        vm['description'] = vm['description'] + "\n" + desc
+      pubip = False
+      if not 'description' in vm:
+        vm['description'] = ""
+      if 'tag' in vm:
+        vm['description'] = vm['description'] + "\ntag:" + vm['tag'] + "\n"
+      if not 'numCpus' in vm:
+        module.fail_json(msg = 'ERROR numCpus not specified for VM!')
       new_vm = {'name': vm['name'],
                 'description': vm['description'],
-                'os': 'linux_manuel',
                 'baseVmId': 0,
+                'os': 'linux_manuel',
                 'numCpus': vm['numCpus']
                }
-      new_vm['memorySize']['unit'] = vm['memorySize']['unit']
-      new_vm['memorySize']['value'] = vm['memorySize']['value']
-      if vm['keypairName']:
+      if 'hostnames' in vm:
+        new_vm['hostnames'] = vm['hostnames']
+      if not 'memorySize' in vm:
+        module.fail_json(msg = 'ERROR memorySize subsection not specified for VM!')
+      else:
+        new_vm['memorySize'] = { 'unit': vm['memorySize']['unit'],
+                                 'value': vm['memorySize']['value']
+                               }
+      if 'keypairName' in vm:
         new_vm['keypairName'] = vm['keypairName']
-      if vm['supportsCloudInit']:
-        new_vm['supportsCloudInit'] = True
-      if vm['allowNested']:
-        new_vm['allowNested'] = True
+      if 'supportsCloudInit' in vm:
+        new_vm['supportsCloudInit'] = vm['supportsCloudInit']
+      if 'stopTimeOut' in vm:
+        new_vm['stopTimeOut'] = vm['stopTimeOut']
+      else:
+        new_vm['stopTimeOut'] = 300
+      if 'allowNested' in vm:
+        new_vm['allowNested'] = vm['allowNested']
+      if 'bootOrder' in vm:
+        new_vm['bootOrder'] = vm['bootOrder']
+      else:
+        new_vm['bootOrder'] = ['DISK', 'CDROM']
+      if not 'hardDrives' in vm:
+        module.fail_json(msg = 'ERROR no hardDrives subsection defined in template!')
       drives = new_vm['hardDrives'] = []
       for hd in vm['hardDrives']:
+        if not 'index' in hd:
+          module.fail_json(msg = 'You must specify an index for all HDs!')
+        if not 'type' in hd:
+          hd['type'] = "DISK"
+        if hd['type'] != "DISK" and hd['type'] != "CDROM":
+          module.fail_json(msg = 'For HD type specify DISK or CDROM!')
+        if not 'controller' in hd:
+          hd['controller'] = "virtio"
+        if hd['controller'] != "virtio" and hd['controller'] != "ide":
+          module.fail_json(msg = 'For HD controller specify virtio or ide!')
+        if not 'boot' in hd:
+          hd['boot'] = False
+        if not 'name' in hd:
+          hd['name'] = "Disk ", hd['index']
         new_drive = { 'index': hd['index'],
                       'type': hd['type'],
                       'boot': hd['boot'],
                       'controller': hd['controller'],
                       'name': hd['name'],
                     }
-        new_drive['size']['unit'] = hd['size']['unit']
-        new_drive['size']['value'] = hd['size']['value']
-        if hd['baseDiskImageId']:
-          new_drive['baseDiskImageId'] = hd['baseDiskImageId']
-        elif hd['imageName']:
-          image_id = get_diskimage(client, hd['imageName'])
-          if image_id is None:
-            module.fail_json(msg = 'FATAL ERROR no such disk image %s' % hd['imageName'])
-          new_drive['baseDiskImageId'] = image_id
+        if not 'size' in hd:
+          module.fail_json(msg = 'ERROR HD size not specified for VM!')
+        else:
+          if not 'unit' in hd['size']:
+            module.fail_json(msg = 'ERROR HD size unit not defined')
+          if not 'value' in hd['size']:
+            module.fail_json(msg = 'ERROR HD size value not defined')
+          if hd['size']['unit'] != "GB" and hd['size']['unit'] != "MB":
+            module.fail_json(msg = 'ERROR HD size unit must be GB or MB')
+          if not int(hd['size']['value']):
+            module.fail_json(msg = 'ERROR HD size value must be an int')
+          new_drive['size'] = { 'unit': hd['size']['unit'],
+                                'value': hd['size']['value']
+                              }
+        image = {}
+        if 'baseDiskImageId' in hd:
+          image = get_diskimage(client, hd['baseDiskImageId'])
+          if image is None:
+            module.fail_json(msg = 'FATAL ERROR nonexistent baseDiskImageId %s specified!' % hd['baseDiskImageId'])
+        elif 'imageName' in hd:
+          image = get_diskimage(client, hd['imageName'])
+          if image is None:
+            module.fail_json(msg = 'FATAL ERROR nonexistent imageName %s specified!' % hd['imageName'])
+        if 'baseDiskImageId' in hd or 'imageName' in hd:
+          if hd['size']['value'] < image['size']['value']:
+            module.fail_json(msg = 'ERROR HD size value (%s) is smaller than the image (%s)' % (hd['size']['value'], image['size']['value']))
+          else:
+            new_drive['baseDiskImageId'] = image['id']
+        #else:
+        #    new_drive['baseDiskImageId'] = 0
         drives.append(new_drive)
+      if not 'networkConnections' in vm:
+         module.fail_json(msg = 'FATAL ERROR networkConnections subsection not configured in template!')
       connections = new_vm['networkConnections'] = []
       for nic in vm['networkConnections']:
-        supsvc = False
+        if not 'device' in nic:
+         module.fail_json(msg = 'FATAL ERROR device subsection not configured in networkConnection!')
+        if not 'ipConfig' in nic:
+         module.fail_json(msg = 'FATAL ERROR ipConfig subsection not configured in networkConnection!')
+        if not 'index' in nic['device']:
+          module.fail_json(msg = 'You must specify an index for all NICs!')
+        if not 'name' in nic['device']:
+          nic['device']['name'] = "Nic ", nic['device']['index']
+        if not 'deviceType' in nic['device']:
+          nic['device']['deviceType'] = "virtio"
+        if nic['device']['deviceType'] != "virtio" and nic['device']['deviceType'] != "e1000":
+          module.fail_json(msg = 'For NIC device deviceType specify virtio or e1000!')
         new_nic = { 'name': nic['name'] }
         new_nic['device'] = { 'index': nic['device']['index'],
                               'deviceType': nic['device']['deviceType']
                             }
-        if nic['device']['useAutomicMac']:
-          new_nic['device']['useAtomaticMac'] = True
-        else:
-          new_nic['device']['mac'] = nic['device']['mac']
-        if nic['ipConfig']['autoIpConfig']:
-          new_nic['ipConfig']['autoIpConfig'] = { 'reservedIp': nic['ipConfig']['autoIpConfig']['reservedIp'] }
-        elif nic['ipConfig']['staticIpConfig']:
-          new_nic['ipConfig']['staticIpConfig'] = { 'ip': nic['ipConfig']['autoIpConfig']['ip'],
-                                                    'mask': nic['ipConfig']['autoIpConfig']['mask']
+        if 'useAutomaticMac' in nic['device']:
+          if nic['device']['useAutomaticMac'] == False:
+            new_nic['device']['useAutomaticMac'] = False
+            if 'mac' in nic['device']:
+              new_nic['device']['mac'] = nic['device']['mac']
+            else:
+              module.fail_json(msg = 'ERROR useAutomaticMac set to False but no static mac set for VM %s NIC index %s!' % (new_vm['name'], new_nic['device']['index']))
+          else:
+            new_nic['device']['useAutomaticMac'] = True
+        new_nic['ipConfig'] = {}
+        if 'autoIpConfig' in nic['ipConfig']:
+          if 'reservedIp' in nic['ipConfig']['autoIpConfig']:
+            new_nic['ipConfig']['autoIpConfig'] = { 'reservedIp': nic['ipConfig']['autoIpConfig']['reservedIp'] }
+        elif 'staticIpConfig' in nic['ipConfig']:
+          if not 'ip' in nic['ipConfig']['staticIpConfig']:
+            module.fail_json(msg = 'FATAL ERROR ipConfig/staticIpConfig is missing ip!')
+          if not 'mask' in nic['ipConfig']['staticIpConfig']:
+            module.fail_json(msg = 'FATAL ERROR ipConfig/staticIpConfig is missing mask!')
+          new_nic['ipConfig']['staticIpConfig'] = { 'ip': nic['ipConfig']['staticIpConfig']['ip'],
+                                                    'mask': nic['ipConfig']['staticIpConfig']['mask']
                                                   }
-          if nic['ipConfig']['staticIpConfig']['gateway']:
+          if 'gateway' in nic['ipConfig']['staticIpConfig']:
             new_nic['ipConfig']['staticIpConfig']['gateway'] = nic['ipConfig']['staticIpConfig']['gateway']
-          if nic['ipConfig']['staticIpConfig']['dns']:
+          if 'dns' in nic['ipConfig']['staticIpConfig']:
             new_nic['ipConfig']['staticIpConfig']['dns'] = nic['ipConfig']['staticIpConfig']['dns']
-        if nic['ipConfig']['hasPublicIp']:
+        if 'hasPublicIp' in nic['ipConfig']:
           new_nic['ipConfig']['hasPublicIp'] = True
-          supsvc = True
+          pubip = True
         connections.append(new_nic)
-      if supsvc:
+      if pubip and 'suppliedServices' in vm:
         services = new_vm['suppliedServices'] = []
         for svc in vm['suppliedServices']:
+          if not 'name' in svc:
+            module.fail_json(msg = 'FATAL ERROR supplied service missing name!')
+          if not 'ip' in svc:
+            module.fail_json(msg = 'FATAL ERROR supplied service missing ip!')
+          if not 'portRange' in svc:
+            module.fail_json(msg = 'FATAL ERROR supplied service missing portRange!')
           new_svc = { 'external': True,
                       'name': svc['name'],
                       'ip': svc['ip'],
                       'portRange': svc['portRange']
                     }
-          if svc['protocol']:
+          if 'protocol' in svc:
             new_svc['protocol'] = svc['protocol']
           services.append(new_svc)
-      new_app.append(new_vm)
-    print "-------------------"
-    print(new_app)
-    print "-------------------"
-    module.exit_json(changed=False, name='DEBUG %s' % app_name)
+      new_app['design']['vms'].append(new_vm)
     try:
         created_app = client.create_application(new_app)
     except Exception, e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
-        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
+        module.fail_json(msg = '%s' % e,stdout='%s' % log_contents, jsonout='%s' % new_app)
     appID = created_app['id']
-    blueprint_name = app_name + "-bp"
     blueprint_dict = {"applicationId":appID, "blueprintName":blueprint_name, "offline": False, "description":app_description }
     try:
         blueprint_id=((client.create_blueprint(blueprint_dict))['_href'].split('/'))[2]
@@ -524,7 +613,7 @@ def create_app_and_publish(client, module):
             module.fail_json(msg='Must supply a cloud when publish optimization is performance', changed=False)
         if not module.params.get("region"):
             module.fail_json(msg='Must supply a region when publish optimization is performance', changed=False)
-    app = {'name': module.params.get("name"), 'description': module.params.get("description",''), 'baseBlueprintId': module.params.get("blueprint_id")}    
+    app = {'name': module.params.get("app_name"), 'description': module.params.get("description",''), 'baseBlueprintId': module.params.get("blueprint_id")}    
     app = client.create_application(app)
     req = {}
     if 'performance' == module.params.get("publish_optimization"):
@@ -538,7 +627,7 @@ def create_app_and_publish(client, module):
     _wait_for_state(client,'STARTED',module)
     log_contents = log_capture_string.getvalue()
     log_capture_string.close()
-    module.exit_json(changed=True, name='%s' % module.params.get("name"),stdout='%s' % log_contents, app_id='%s' % app['id'])
+    module.exit_json(changed=True, app_name='%s' % module.params.get("app_name"),stdout='%s' % log_contents, app_id='%s' % app['id'])
 
 # import module snippets
 import ansible
