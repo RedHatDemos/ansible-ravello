@@ -185,7 +185,7 @@ class RavelloInventory(object):
 
         app = client.get_application(myappid, aspect="deployment")
 
-        if app['deployment']:
+        if 'deployment' in app:
           appname = app['name']
           vmsFlag = True if "vms" in app["deployment"] else False
           if vmsFlag == True:
@@ -196,21 +196,22 @@ class RavelloInventory(object):
               #else:
               hostnames = vm['hostnames']
               hostname = hostnames[0]
-              desc = vm['description']
-              for line in desc.splitlines():
-                if re.match("^tag:", line):
-                  t = line.split(':')
-                  tag = t[1]
-                  if tag in groups.keys():
-                    groups[tag]['hosts'].append(hostname)
-                  else:
-                    groups[tag] = {}
-                    groups[tag]['hosts'] = {}
-                    groups[tag]['hosts'] = [hostname]
-                  if 'externalFqdn' in vm:
-                    groups['_meta']['hostvars'][hostname] = { 'externalFqdn': vm['externalFqdn'] }
-                  if tag == 'bastion' and 'externalFqdn' in vm:
-                    groups['_meta']['hostvars'][hostname].update({ 'bastion': True })
+              if 'description' in vm:
+                desc = vm['description']
+                for line in desc.splitlines():
+                  if re.match("^tag:", line):
+                    t = line.split(':')
+                    tag = t[1]
+                    if tag in groups.keys():
+                      groups[tag]['hosts'].append(hostname)
+                    else:
+                      groups[tag] = {}
+                      groups[tag]['hosts'] = {}
+                      groups[tag]['hosts'] = [hostname]
+                    if 'externalFqdn' in vm:
+                      groups['_meta']['hostvars'][hostname] = { 'externalFqdn': vm['externalFqdn'] }
+                    if tag == 'bastion' and 'externalFqdn' in vm:
+                      groups['_meta']['hostvars'][hostname].update({ 'bastion': True })
                     
         print json.dumps(groups, indent=5)  
 
