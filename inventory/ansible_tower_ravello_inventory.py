@@ -89,8 +89,9 @@ class RavelloInventory(object):
         self.parse_cli_args()
 
         # If --apps is set then run get_apps_all
-        #if self.args.apps is True:
-        #  self.get_apps_all()
+        if self.args.apps is not None:
+          self.get_apps_all()
+          exit (0)
 
         # If --list is set then run get_app with ID of application 
         if self.args.list is not None:
@@ -156,10 +157,8 @@ class RavelloInventory(object):
           #Only get the published apps
           if app['published']:
             myname = (json.dumps(app['name']))
-            names.append(myname)
-        for name in names:
-          print name 
-
+            print myname 
+        exit (0)
 
     def get_app(self):
         #Connect to Ravello
