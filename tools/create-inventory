@@ -1,0 +1,35 @@
+#!/bin/env bash
+
+OUT_FILE=""
+THIS_DIR=$(dirname $(readlink -f $0))
+
+while [[ $# -gt 0 ]]; do
+
+
+case $1 in
+  -o)
+  OUT_FILE=$2
+  shift;shift
+  ;;
+  *)
+  APP_NAME=$1
+  shift
+  ;; 
+esac
+done
+
+OUTPUT="#!/bin/env bash
+
+if [[ \$1 == '--list' ]]; then
+  python $(realpath $THIS_DIR/../inventory/ravello.py) --list $APP_NAME
+elif [[ \$1 == '--hosts' ]]; then
+  python $(realpath $THIS_DIR/../inventory/ravello.py) --hosts
+fi"
+
+if [[ $OUT_FILE != "" ]]; then
+  echo -e "$OUTPUT" > $OUT_FILE
+  chmod +x $OUT_FILE
+else
+  echo -e "$OUTPUT"
+fi
+  
