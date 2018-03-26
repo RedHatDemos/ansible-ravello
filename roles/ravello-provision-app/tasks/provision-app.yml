@@ -1,0 +1,33 @@
+---
+- ravello_quick_template:
+    path: "{{ template_name }}"
+    instances: "{{ instances }}"
+
+- template:
+    src: "{{ template_name }}"
+    dest: "{{ playbook_dir }}/{{ template_name }}.out"
+
+- name: "create staging app based on {{ app_template }}"
+  local_action:
+    module: ravello_module
+    app_name: "{{ application_name }}-tmp"
+    description: "{{ application_name }}"
+    app_template: "{{ template_name }}"
+    state: design
+  register: design_results
+
+
+- name: create application based on deployed blueprint and wait for start
+  local_action:
+    module: ravello_module
+    app_name: "{{ application_name }}"
+    description: "{{ application_name }}"
+    state: present
+    blueprint_id: "{{ design_results.blueprint_id }}"
+    wait_timeout: "{{ wait_timeout }}"
+    application_ttl: "{{ env_expire }}"
+    cost_bucket: "{{ ravello_cost_bucket }}"
+    publish_optimization: "{{ publish_optimization }}"
+    region: "{{ publish_region }}"
+    cloud: "{{ publish_cloud }}"
+  register: app_results

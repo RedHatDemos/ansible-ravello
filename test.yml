@@ -1,0 +1,6 @@
+---
+- name: provision app
+  hosts: localhost
+  tasks:
+    - include_role:
+        name: ravello-provision-app

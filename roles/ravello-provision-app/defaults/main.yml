@@ -1,2 +1,13 @@
 ---
 # defaults file for ravello-provision-app
+application_name: my.ravello.app
+template_name: "{{ application_name }}.template"
+ssh_key_path: "./{{ application_name }}.id_rsa"
+remote_user: cloud-user
+ssh_password_auth: False
+ravello_cost_bucket: Default
+publish_optimization: cost
+publish_region: default
+publish_cloud: default
+wait_timeout: 1800
+env_expire: 120

@@ -1,0 +1,3 @@
+---
+# defaults file for bastion
+register_node_retries: 10

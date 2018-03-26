@@ -1,2 +1,8 @@
 ---
 # tasks file for ravello-provision-app
+#
+- name: Generate ssh keys for env access
+  include: "./ssh_env_keygen.yml"
+
+- name: provision application
+  include: "./provision-app.yml"

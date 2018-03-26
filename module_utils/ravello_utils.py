@@ -3,6 +3,16 @@
 import re
 import yaml
 import json
+import sys
+import random
+import string
+import os
+import base64
+import getpass
+import logging
+import logging.handlers
+
+DEFAULT_BOOT_IMAGE = "rhel-guest-image-7.3-35.x86_64"
 
 class ModuleFail:
     def __init__(self):
@@ -58,6 +68,15 @@ def from_kwargs(kwargs, k, default):
         raise default
     else:
       return default
+
+# Ensure all required kwargs are present
+def kwargs_check(kwargs, key_list, fn_name):
+    for x in key_list:
+        if x not in kwargs:
+            raise Exception("Missing required keyword argument: " + x)
+    for y in kwargs:
+        if y not in key_list:
+            raise Exception("Invalid keyword argument: " + y)
 
 def json_head_contains(json_item, key):
     if json_item is None:
