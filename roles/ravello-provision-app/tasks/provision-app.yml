@@ -1,18 +1,18 @@
 ---
 - ravello_quick_template:
-    path: "{{ template_name }}"
+    path: "{{ template_path }}"
     instances: "{{ instances }}"
 
 - template:
-    src: "{{ template_name }}"
-    dest: "{{ playbook_dir }}/{{ template_name }}.out"
+    src: "{{ template_path }}"
+    dest: "{{ template_path }}.out"
 
 - name: "create staging app based on {{ app_template }}"
   local_action:
     module: ravello_module
     app_name: "{{ application_name }}-tmp"
     description: "{{ application_name }}"
-    app_template: "{{ template_name }}"
+    app_template: "{{ template_path }}.out"
     state: design
   register: design_results
 
@@ -31,3 +31,4 @@
     region: "{{ publish_region }}"
     cloud: "{{ publish_cloud }}"
   register: app_results
+

@@ -1,8 +1,9 @@
 ---
 # defaults file for ravello-provision-app
 application_name: my.ravello.app
-template_name: "{{ application_name }}.template"
-ssh_key_path: "./{{ application_name }}.id_rsa"
+workdir_path: "{{ playbook_dir }}/workdir/{{ application_name }}"
+template_path: "{{ workdir_path }}/{{ application_name }}.template"
+ssh_key_path: "{{ workdir_path }}/{{ application_name }}.id_rsa"
 remote_user: cloud-user
 ssh_password_auth: False
 ravello_cost_bucket: Default
@@ -11,3 +12,40 @@ publish_region: default
 publish_cloud: default
 wait_timeout: 1800
 env_expire: 120
+
+instances:
+  - name: bastion
+    hostname: bastion-REPL.rhpds.opentlc.com
+    cpus: 4
+    ram: 8
+    disks:
+      - size: 50
+      - size: 100
+    nics:
+      - name: eth0
+        ip: 192.168.1.10
+        services:
+            - protocol: ssh
+              port: 22
+    public_key: "{{ env_public_key }}"
+    private_key_path: "{{ ssh_key_path }}"
+    remote_user: cloud-user
+  - name: webserver
+    hostname: webserver-REPL.rhpds.opentlc.com
+    proxy: bastion
+    cpus: 2
+    ram: 2
+    disks:
+      - size: 50
+    nics:
+      - name: eth0
+        services:
+            - protocol: https
+              port: 8443
+      - name: eth1
+        services:
+            - protocol: http
+              port: 80
+    public_key: "{{ env_public_key }}"
+    private_key_path: "{{ ssh_key_path }}"
+    remote_user: cloud-user

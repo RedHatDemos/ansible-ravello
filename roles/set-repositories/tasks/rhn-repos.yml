@@ -1,5 +1,15 @@
 # vim: set ft=ansible:
 ---
+- name: check for rhn username
+  fail:
+    msg: please set 'rhel_subscription_user' using ansible vault
+  when: rhel_subscription_user is not defined
+
+- name: check for rhn password
+  fail:
+    msg: please set 'rhel_subscription_pass' using ansible vault
+  when: rhel_subscription_user is not defined
+
 - name: Force unregister before register
   redhat_subscription:
     state: absent
@@ -38,4 +48,4 @@
 - name: enable repos for rhel
   command: subscription-manager repos --enable "{{ item }}"
   with_items:
-    - '{{ rhel_repos }}'
+    - '{{ repos_to_enable }}'

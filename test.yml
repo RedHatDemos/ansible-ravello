@@ -1,6 +1,54 @@
 ---
 - name: provision app
   hosts: localhost
+  tags:
+    - provision
   tasks:
+    - debug:
+        var: hostvars
     - include_role:
         name: ravello-provision-app
+    - meta: refresh_inventory
+
+- name: enable repositories and update system
+  become: true
+  vars:
+    - repo_method: activationkey
+  vars_files:
+    # rhn credentials
+    - ./workdir/activation-key.yml
+  tags:
+    - repos
+  hosts: 
+    - bastion-REPL.rhpds.opentlc.com
+    - webserver-REPL.rhpds.opentlc.com
+  tasks:
+    - include_role: 
+        name: set-repositories
+    - yum:
+        name: "*"
+        state: latest
+
+- name: reboot hosts after update
+  tags: 
+    - reboot
+  hosts: 
+    - bastion
+    - webserver
+  tasks:
+    - include_role: 
+        name: reboot-host
+
+- name: set motd
+  become: true
+  tags:
+    - motd
+  hosts:
+    - bastion
+    - webserver
+  tasks:
+    - copy:
+        content: "Welcome to {{ inventory_hostname }}\n"
+        dest: /etc/motd
+  
+

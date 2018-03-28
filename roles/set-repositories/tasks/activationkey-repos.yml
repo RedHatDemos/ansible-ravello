@@ -49,6 +49,6 @@
 - name: enable repos for rhel
   command: subscription-manager repos --enable "{{ item }}"
   with_items:
-    - '{{ rhel_repos }}'
+    - '{{ repos_to_enable }}'
   retries: 10
   delay: 5

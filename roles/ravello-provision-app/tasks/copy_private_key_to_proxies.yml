@@ -1,0 +1,18 @@
+---
+
+- debug:
+    var: hostvars
+
+- wait_for:
+    port: 22
+    host: "{{ item.externalFqdn }}"
+    search_regex: OpenSSH
+    delay: 30
+  with_items: "{{ hostvars.values() | list }}"
+  when: item.isProxy
+
+- name: copy private key to proxies
+  shell: "scp -i {{ ssh_key_path }} {{ ssh_key_path }} {{ item.ansible_user }}@{{ item.externalFqdn }}:~/.ssh/id_rsa"
+  with_items: "{{ hostvars.values() | list }}"
+  when: item.isProxy
+

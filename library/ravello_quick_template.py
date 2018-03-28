@@ -81,10 +81,10 @@ class Service:
                 kwargs, 
                 'protocol', 
                  Exception('Missing required field: protocol'))
-        self.nic = \
+        self.device = \
             from_kwargs(
                 kwargs, 
-                'nic', 
+                'device', 
                 Exception('Missing required field: nic'))
         self.name = \
             from_kwargs(
@@ -94,7 +94,7 @@ class Service:
     def to_yaml_dict(self):
         return {
            'external': self.external,
-           'device': self.nic,
+           'device': self.device,
            'name': self.name,
            'portRange': self.port_range,
            'protocol': self.protocol.upper(),
@@ -161,6 +161,14 @@ class Vm:
         self.hard_drives = []
         self.network_devices = []
         self.services = []
+        # Ansible directives
+        self.proxy = from_kwargs(kwargs, 'proxy', None)
+        self.hostvars = from_kwargs(kwargs, 'vars', {})
+        self.groups = from_kwargs(kwargs, 'groups', None)
+        self.remote_user = from_kwargs(kwargs, 'remote_user', 'cloud-user')
+        self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
+                                  Exception("private_key_path required"))
+         
         for i, d in enumerate(disks):
             d['index'] = i
             self.add_hard_drive(**d)
@@ -169,22 +177,31 @@ class Vm:
             if 'services' in n and isinstance(n['services'], list):
                 self.add_network_device(**n)
                 for s in n['services']:
+                   s['device'] = n['name']
                    self.add_service(**s)
         # Add boot disk
         if not filter(lambda hd: hd.bootable, self.hard_drives):
             self.hard_drives[0].image = DEFAULT_BOOT_IMAGE
             self.hard_drives[0].bootable = True
+    def gen_ansible_directives(self):
+        yml = {
+          'name' : self.tag,
+          'vars' : self.hostvars
+        }
+        yml['vars']['ansible_ssh_private_key_file'] = self.private_key_path
+        yml['vars']['ansible_user'] = self.remote_user
+        if self.groups != None:
+            yml['groups'] = self.groups
+        if self.proxy != None:
+            yml['proxy'] = self.proxy
+        return "#%ansible\n" + yaml.dump(yml, default_flow_style=False) + "#%end\n"
+        
        
     def add_hard_drive(self, **kwargs):
         hd = HardDrive(**kwargs)
         self.hard_drives.append(hd)
 
     def add_service(self, **kwargs):
-        nic = from_kwargs(kwargs, 'nic', 
-             self.network_devices[0] \
-                 if self.network_devices \
-                 else Exception("add_service Error: no nics found"))
-        kwargs['nic'] = nic.name
         s = Service(**kwargs)
         self.services.append(s)
 
@@ -198,7 +215,7 @@ class Vm:
           'tag' : self.tag,
           'allowNested': False,
           'preferPhysicalHost' : False,
-          'description' : self.description,
+          'description' : self.description + "\n" + self.gen_ansible_directives(),
           'numCpus' : self.num_cpus, 
           'memorySize': {
              'unit' : self.memory_unit,
@@ -217,7 +234,7 @@ class Vm:
   ssh_pwauth: False
   disable_root: False
   users:
-    - name: "cloud-user"
+    - name: """ + self.remote_user + """
       sudo: ALL=(ALL) NOPASSWD:ALL
       lock_passwd: False
       ssh-authorized-keys:

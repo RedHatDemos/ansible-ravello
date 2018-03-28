@@ -1,3 +1,8 @@
 ---
 # defaults file for bastion
 register_node_retries: 10
+repo_method: rhn
+repos_to_enable:
+  - rhel-7-server-rpms
+  - rhel-7-server-rh-common-rpms
+  - rhel-7-server-extras-rpms

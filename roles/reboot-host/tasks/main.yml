@@ -1,0 +1,38 @@
+---
+# tasks file for reboot-host
+#
+
+- pause:
+    seconds: 15
+  when: (isProxy is defined) and (isProxy)
+
+- name: send reboot request to systemd
+  shell: sudo /usr/bin/systemd-run --on-active=10 /usr/bin/systemctl reboot
+
+- name: wait for proxy host availability
+  local_action:
+    module: wait_for
+    port: 22
+    host: "{{ proxyFqdn }}"
+    search_regex: OpenSSH
+    delay: 30
+  when: proxyFqdn is defined
+
+- name: wait for host availability (from localhost)
+  local_action:
+    module: wait_for
+    port: 22
+    host: "{{ inventory_hostname }}"
+    search_regex: OpenSSH
+    delay: 30
+  when: proxyFqdn is not defined
+
+- name: wait for host availibity (delegate to proxy)
+  wait_for:
+    port: 22
+    host: "{{ inventory_hostname }}"
+    search_regex: OpenSSH
+    delay: 30
+  delegate_to: "{{ proxyFqdn }}"
+  when: proxyFqdn is defined
+

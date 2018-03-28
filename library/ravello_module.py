@@ -938,7 +938,7 @@ def update_app_with_internal_luids(client, module, app_request, appID):
           vm_hostname = vm['hostnames'][0]
           hostname_ip_mapping[vm_hostname][nic_name]['ipconf_id'] = nic_ipconf_id
           if nic_name in hostname_ip_mapping[vm_hostname] and \
-             'ip' in hostname_ip_mapping[vm_hostname][nic_name]:
+            'ip' in hostname_ip_mapping[vm_hostname][nic_name]:
               nic_ip = hostname_ip_mapping[vm_hostname][nic_name]['ip']
               if hostname_ip_mapping[vm_hostname][nic_name]['dhcpReservedIp']:
                   item = {
