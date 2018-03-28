@@ -2,9 +2,10 @@
 # tasks file for reboot-host
 #
 
-- pause:
+- name: wait for remote connection release if current host is proxy
+  pause:
     seconds: 15
-  when: (isProxy is defined) and (isProxy)
+  when: (hostIsProxy is defined) and (hostIsProxy)
 
 - name: send reboot request to systemd
   shell: sudo /usr/bin/systemd-run --on-active=10 /usr/bin/systemctl reboot

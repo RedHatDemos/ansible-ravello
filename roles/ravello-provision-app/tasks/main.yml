@@ -8,13 +8,13 @@
     recurse: yes
 
 - name: Generate ssh keys for env access
-  include: "./ssh_env_keygen.yml"
+  include_tasks: "./ssh_env_keygen.yml"
 
 - name: provision application
-  include: "./provision-app.yml"
+  include_tasks: "./provision-app.yml"
 
 - meta: refresh_inventory
 
-- name: provision application
-  include: "./copy_private_key_to_proxies.yml"
+- name: copy private key to proxy hosts
+  include_tasks: "./copy_private_key_to_proxies.yml"
 

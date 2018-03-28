@@ -1,15 +1,21 @@
 ---
-- name: Generate SSH keys
+- name: Generate ssh keypair
   shell: 'ssh-keygen -b 2048 -t rsa -f {{ ssh_key_path }} -q -N ""'
   args:
     creates: "{{ ssh_key_path }}"
 
-- local_action: command whoami
+- name: get local username
+  local_action: command whoami
   register: my_login
-- local_action: command hostname
+
+- name: get local hostname
+  local_action: command hostname
   register: my_domain
-- set_fact:
+
+- name: set login domain as fact
+  set_fact:
     my_login_domain: '{{ my_login.stdout_lines.0 }}@{{ my_domain.stdout_lines.0 }}'
-- name: save ssh_keys as facts
+
+- name: set ssh public key as fact and strip login domain
   set_fact:
     env_public_key: "{{ lookup('file', ssh_key_path + '.pub') | regex_replace(' ' + my_login_domain, '') }}"

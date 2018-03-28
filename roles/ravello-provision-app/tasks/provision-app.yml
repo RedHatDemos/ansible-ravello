@@ -1,23 +1,25 @@
 ---
-- ravello_quick_template:
-    path: "{{ template_path }}"
+- name: Create ravello cloud jinja template from vm instance definitions
+  ravello_cloud_template:
+    path: "{{ template_path }}.j2"
     instances: "{{ instances }}"
 
-- template:
-    src: "{{ template_path }}"
-    dest: "{{ template_path }}.out"
+- name: Expand jinja template into finalized ravello template
+  template:
+    src: "{{ template_path }}.j2"
+    dest: "{{ template_path }}"
 
-- name: "create staging app based on {{ app_template }}"
+- name: "build staging app based on {{ app_template }}"
   local_action:
     module: ravello_module
     app_name: "{{ application_name }}-tmp"
     description: "{{ application_name }}"
-    app_template: "{{ template_path }}.out"
+    app_template: "{{ template_path }}"
     state: design
   register: design_results
 
 
-- name: create application based on deployed blueprint and wait for start
+- name: publish application and wait for start
   local_action:
     module: ravello_module
     app_name: "{{ application_name }}"

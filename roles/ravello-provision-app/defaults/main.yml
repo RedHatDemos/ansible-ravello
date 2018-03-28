@@ -15,7 +15,7 @@ env_expire: 120
 
 instances:
   - name: bastion
-    hostname: bastion-REPL.rhpds.opentlc.com
+    hostname: bastion.example.com
     cpus: 4
     ram: 8
     disks:
@@ -30,8 +30,8 @@ instances:
     public_key: "{{ env_public_key }}"
     private_key_path: "{{ ssh_key_path }}"
     remote_user: cloud-user
-  - name: webserver
-    hostname: webserver-REPL.rhpds.opentlc.com
+  - name: server
+    hostname: server.example.com
     proxy: bastion
     cpus: 2
     ram: 2

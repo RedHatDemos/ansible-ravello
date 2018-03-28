@@ -3,9 +3,9 @@
   hosts: localhost
   tags:
     - provision
+  vars:
+    - application_name: my.basic.app
   tasks:
-    - debug:
-        var: hostvars
     - include_role:
         name: ravello-provision-app
     - meta: refresh_inventory
@@ -20,8 +20,8 @@
   tags:
     - repos
   hosts: 
-    - bastion-REPL.rhpds.opentlc.com
-    - webserver-REPL.rhpds.opentlc.com
+    - bastion.example.com
+    - server.example.com
   tasks:
     - include_role: 
         name: set-repositories
@@ -33,8 +33,8 @@
   tags: 
     - reboot
   hosts: 
-    - bastion
-    - webserver
+    - bastion.example.com
+    - server.example.com
   tasks:
     - include_role: 
         name: reboot-host
@@ -44,8 +44,8 @@
   tags:
     - motd
   hosts:
-    - bastion
-    - webserver
+    - bastion.example.com
+    - webserver.example.com
   tasks:
     - copy:
         content: "Welcome to {{ inventory_hostname }}\n"

@@ -166,6 +166,8 @@ class Vm:
         self.hostvars = from_kwargs(kwargs, 'vars', {})
         self.groups = from_kwargs(kwargs, 'groups', None)
         self.remote_user = from_kwargs(kwargs, 'remote_user', 'cloud-user')
+        self.allow_nested= from_kwargs(kwargs, 'allowNested', False)
+        self.prefer_physical = from_kwargs(kwargs, 'preferPhysicalHost', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
                                   Exception("private_key_path required"))
          
@@ -213,8 +215,8 @@ class Vm:
         vm_yaml = {
           'name' : self.name,
           'tag' : self.tag,
-          'allowNested': False,
-          'preferPhysicalHost' : False,
+          'allowNested': self.allow_nested,
+          'preferPhysicalHost' : self.prefer_physical,
           'description' : self.description + "\n" + self.gen_ansible_directives(),
           'numCpus' : self.num_cpus, 
           'memorySize': {

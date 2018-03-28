@@ -3,25 +3,25 @@
 ######################### Set up Subscription Method (File/Satellite/RHN)
 
 - name: Configure Satellite Subscription
-  include: ./satellite-repos.yml
+  include_tasks: ./satellite-repos.yml
   when: repo_method == "satellite"
   tags:
     - set_repositories
 
 - name: Configure RHN Subscription
-  include: ./rhn-repos.yml
+  include_tasks: ./rhn-repos.yml
   when: repo_method == "rhn"
   tags:
     - set_repositories
 
 - name: Configure Repository File
-  include: ./file-repos.yml
+  include_tasks: ./file-repos.yml
   when: repo_method == "file"
   tags:
     - set_repositories
 
 - name: Configure Repository File
-  include: ./activationkey-repos.yml
+  include_tasks: ./activationkey-repos.yml
   when: repo_method == "activationkey"
   tags:
     - set_repositories

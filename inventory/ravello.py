@@ -78,7 +78,8 @@ def create_inv_by_attributes(app, groups):
             { 
               'externalFqdn': vm['externalFqdn'] 
             }
-        groups['_meta']['hostvars'][hostname]['isProxy'] = False
+        groups['_meta']['hostvars'][hostname]['hostIsProxy'] = False
+        groups['_meta']['hostvars'][hostname]['hostnameIsProxy'] = False
     # Second pass after all fqdns are populated
     for vm in vms:
         desc = vm['description']
@@ -96,17 +97,18 @@ def create_inv_by_attributes(app, groups):
             proxy_name = hostname
         proxy = groups['_meta']['hostvars'][proxy_name]['externalFqdn']
         groups['_meta']['hostvars'][hostname]['proxyFqdn'] = proxy
-        groups['_meta']['hostvars'][proxy_name]['isProxy'] = True
+        groups['_meta']['hostvars'][proxy_name]['hostIsProxy'] = True
         hvars['ansible_ssh_common_args'] = '-o ProxyCommand="ssh -i {{ hostvars["' + hostname + '"]["ansible_ssh_private_key_file"] }} -W %h:%p -q {{ hostvars["' + proxy + '"]["ansible_user"] }}@'  + proxy + '"'
         for k, v in hvars.iteritems():
             groups['_meta']['hostvars'][hostname][k] = v 
     for vm in vms:
         hostname = vm['hostnames'][0]
         vm_name = attrs['name']
-        if groups['_meta']['hostvars'][hostname]['isProxy']:
+        if groups['_meta']['hostvars'][hostname]['hostIsProxy']:
             fqdn = groups['_meta']['hostvars'][hostname]['externalFqdn']
             groups['_meta']['hostvars'][fqdn] = \
               groups['_meta']['hostvars'][hostname].copy() 
+            groups['_meta']['hostvars'][fqdn]['hostnameIsProxy'] = True
             del groups['_meta']['hostvars'][fqdn]['ansible_ssh_common_args']
             groups[vm_name + "_public"] = {"hosts" :  [fqdn]}
         
