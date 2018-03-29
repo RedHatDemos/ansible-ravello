@@ -972,10 +972,10 @@ def update_app_with_internal_luids(client, module, app_request, appID):
                                  app_request['design']['vms'])[0]
                 if check_for_param(old_vm, 'suppliedServices.' + str(j), required=False):
                     service_req = ravello_template_get(old_vm['suppliedServices'], str(j))
-                    nic_name = ""
+                    
                     if 'device' in service_req:
                         nic_name = service_req['device']
-                    else: 
+                    elif 'ip' in service_req: 
                          found = False
                          for entry in hostname_ip_mapping[vm_hostname]:
                              if service_req['ip'] == hostname_ip_mapping[vm_hostname][entry]['ip']:

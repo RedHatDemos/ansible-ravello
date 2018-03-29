@@ -85,20 +85,22 @@ class Service:
             from_kwargs(
                 kwargs, 
                 'device', 
-                Exception('Missing required field: nic'))
+                None)
         self.name = \
             from_kwargs(
                 kwargs, 
                 'name', 
                 self.protocol.lower())
     def to_yaml_dict(self):
-        return {
+        svc_yaml = {
            'external': self.external,
-           'device': self.device,
            'name': self.name,
            'portRange': self.port_range,
            'protocol': self.protocol.upper(),
          } 
+        if self.device != None:
+            svc_yaml['device'] = self.device
+        return svc_yaml
 
 class NetworkDevice:
     def __init__(self, **kwargs):
@@ -147,16 +149,15 @@ class Vm:
         self.num_cpus = from_kwargs(kwargs, 'cpus', 1)
         self.memory_size = from_kwargs(kwargs, 'ram', 2)
         self.memory_unit = from_kwargs(kwargs, 'mem_unit', "GB")
-        self.keypair_name= from_kwargs(kwargs, 'keypair_name', 'opentlc-admin-backdoor')
-        self.keypair_id = from_kwargs(kwargs, 'keypair_id', '62226455')
+        self.keypair_name= from_kwargs(kwargs, 'keypair_name', None)
+        self.keypair_id = from_kwargs(kwargs, 'keypair_id', None)
         self.hostnames = \
             from_kwargs(kwargs, 'hostname',
-            [self.tag + "-REPL.rhpds.opentlc.com",
-            self.tag + ".example.com",
-            self.tag])
+            [self.tag + ".example.com",
+             self.tag])
         disks = from_kwargs(kwargs, 'disks', [{'size' : 40 }])
         self.stop_timeout = 300
-        self.public_key = from_kwargs(kwargs, 'public_key', Exception("public key required"))
+        self.public_key = from_kwargs(kwargs, 'public_key', Exception("public_key required"))
         self.users = []
         self.hard_drives = []
         self.network_devices = []
@@ -169,7 +170,7 @@ class Vm:
         self.allow_nested= from_kwargs(kwargs, 'allowNested', False)
         self.prefer_physical = from_kwargs(kwargs, 'preferPhysicalHost', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
-                                  Exception("private_key_path required"))
+                            Exception("private_key_path required"))
         self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
          
         for i, d in enumerate(disks):
@@ -177,11 +178,14 @@ class Vm:
             self.add_hard_drive(**d)
         nics = from_kwargs(kwargs, 'nics', [{'name' : 'eth0'}])
         for n in nics:
-            if 'services' in n and isinstance(n['services'], list):
-                self.add_network_device(**n)
-                for s in n['services']:
-                   s['device'] = n['name']
-                   self.add_service(**s)
+            self.add_network_device(**n)
+        services = from_kwargs(kwargs, 'services', [])
+        for s in services:
+            if 'device' in s and not filter(lambda n: n.name == s['device'], 
+                                       self.network_devices):
+                raise Exception("No device: " + s['device'] + 'found for service: ' + s['name'])
+              
+            self.add_service(**s)
         # Add boot disk
         if not filter(lambda hd: hd.bootable, self.hard_drives):
             self.hard_drives[0].image = self.boot_disk_image
@@ -241,10 +245,10 @@ class Vm:
       ssh-authorized-keys:
       - """ + self.public_key
           }
-        if self.keypair_id:
-          yaml['keypairId'] = int(self.keypair_id)
-        if self.keypair_name:
-          yaml['keypairName'] = self.keypair_name
+        if self.keypair_id != None:
+         vm_yaml['keypairId'] = int(self.keypair_id)
+        if self.keypair_name != None:
+          vm_yaml['keypairName'] = self.keypair_name
         return vm_yaml
 
 class Template:

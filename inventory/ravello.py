@@ -103,6 +103,7 @@ def create_inv_by_attributes(app, groups):
             groups['_meta']['hostvars'][hostname][k] = v 
     for vm in vms:
         hostname = vm['hostnames'][0]
+        attrs = get_ansible_attributes(vm)
         vm_name = attrs['name']
         if groups['_meta']['hostvars'][hostname]['hostIsProxy']:
             fqdn = groups['_meta']['hostvars'][hostname]['externalFqdn']

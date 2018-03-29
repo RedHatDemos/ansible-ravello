@@ -8,7 +8,6 @@
   tasks:
     - include_role:
         name: ravello-provision-app
-    - meta: refresh_inventory
 
 - name: enable repositories and update system
   become: true

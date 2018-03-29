@@ -1,0 +1,23 @@
+#!/bin/env bash
+
+APP_NAME=$1
+THIS_DIR=$(dirname $(readlink -f $0))
+
+
+
+if [[ "$APP_NAME" != "" ]]; then
+
+mkdir $APP_NAME && \
+cat > $APP_NAME/ansible.cfg << END
+# ansible.cfg
+[defaults]
+library      = `realpath $THIS_DIR/../library`
+roles_path   = `realpath $THIS_DIR/../roles`
+module_utils = `realpath $THIS_DIR/../module_utils`
+END
+
+$THIS_DIR/create-inventory $APP_NAME -o $APP_NAME/inventory
+
+fi
+
+

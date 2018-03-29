@@ -1,0 +1,11 @@
+#!/bin/env bash
+
+APP_NAME=$1
+THIS_DIR=$(dirname $(readlink -f $0))
+
+$THIS_DIR/../inventory/ravello.py --list $APP_NAME | \
+  gawk 'match($0, /proxyFqdn/){print substr($2,2,length($2)-3)}' | uniq
+
+
+
+

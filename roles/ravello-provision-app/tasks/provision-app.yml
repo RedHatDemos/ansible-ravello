@@ -1,4 +1,13 @@
 ---
+
+- set_fact:
+    instances: "{{ instances | map('combine', {'public_key' : env_public_key}) | list }}"
+  when: instances.public_key is not defined
+
+- set_fact:
+    instances: "{{ instances | map('combine', {'private_key_path' : ssh_key_path}) | list }}"
+  when: instances.private_key_path is not defined
+
 - name: Create ravello cloud jinja template from vm instance definitions
   ravello_cloud_template:
     path: "{{ template_path }}.j2"
