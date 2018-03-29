@@ -291,7 +291,7 @@ def main():
             blueprint_name=dict(required=False, type='str'),
             wait=dict(type='bool', default=True ,choices=BOOLEANS),
             wait_timeout=dict(default=1200, type='int'),
-            cost_bucket=dict(default='Organization', type='str')
+            cost_bucket=dict(default='Default', type='str')
     )
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -711,8 +711,8 @@ def assert_vm_valid(client, module, vm):
             default_if_missing='GB')
     check_for_param(vm, 'supportsCloudInit', 
             fail_msg='Error: Template must support cloudInit')
-    check_for_param(vm, 'keypairId')
-    check_for_param(vm, 'keypairName')
+    check_for_param(vm, 'keypairId', required=False)
+    check_for_param(vm, 'keypairName', required=False)
     check_for_param(vm, 'userData', required=False)
     check_for_param(vm, 'stopTimeout',
             default_if_missing=300)

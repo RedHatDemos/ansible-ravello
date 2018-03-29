@@ -148,7 +148,7 @@ class Vm:
         self.memory_size = from_kwargs(kwargs, 'ram', 2)
         self.memory_unit = from_kwargs(kwargs, 'mem_unit', "GB")
         self.keypair_name= from_kwargs(kwargs, 'keypair_name', 'opentlc-admin-backdoor')
-        self.keypair_id = from_kwargs(kwargs, 'id', '62226455')
+        self.keypair_id = from_kwargs(kwargs, 'keypair_id', '62226455')
         self.hostnames = \
             from_kwargs(kwargs, 'hostname',
             [self.tag + "-REPL.rhpds.opentlc.com",
@@ -170,6 +170,7 @@ class Vm:
         self.prefer_physical = from_kwargs(kwargs, 'preferPhysicalHost', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
                                   Exception("private_key_path required"))
+        self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
          
         for i, d in enumerate(disks):
             d['index'] = i
@@ -183,7 +184,7 @@ class Vm:
                    self.add_service(**s)
         # Add boot disk
         if not filter(lambda hd: hd.bootable, self.hard_drives):
-            self.hard_drives[0].image = DEFAULT_BOOT_IMAGE
+            self.hard_drives[0].image = self.boot_disk_image
             self.hard_drives[0].bootable = True
     def gen_ansible_directives(self):
         yml = {
@@ -226,8 +227,6 @@ class Vm:
           'hostnames' : self.hostnames if isinstance(self.hostnames, list) \
                                        else [self.hostnames],
           'supportsCloudInit' : True,
-          'keypairId' : int(self.keypair_id),
-          'keypairName' : self.keypair_name,
           'hardDrives' : [hd.to_yaml_dict(i) for i, hd in enumerate(self.hard_drives)],
           'suppliedServices' : [sv.to_yaml_dict() for i, sv in enumerate(self.services)],
           'networkConnections' : [nd.to_yaml_dict(i) for i, nd in enumerate(self.network_devices)],
@@ -241,8 +240,11 @@ class Vm:
       lock_passwd: False
       ssh-authorized-keys:
       - """ + self.public_key
-
           }
+        if self.keypair_id:
+          yaml['keypairId'] = int(self.keypair_id)
+        if self.keypair_name:
+          yaml['keypairName'] = self.keypair_name
         return vm_yaml
 
 class Template:
