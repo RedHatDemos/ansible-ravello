@@ -1,0 +1,149 @@
+= Tutorial 01
+
+== Prerequisites
+
+The following dependencies must be installed:
+
+- Python >= 2.7
+- Ravello Python Sdk
+- Ansible >=2.3
+
+Credentials for a ravello subscription must be stored in 
+`~/.ravello_login`.  This repository provides a utility
+for setting and encrypting credentials.  
+
+From the top-level directory of this repository, execute:
+
+```
+./tools/set-creds
+```
+
+A useable virtual disk image of Red Hat Enterprise Linux in your Ravello 
+disk images library.  We will use an image called
+`rhel-guest-image-7.3-35.x86_64`.
+
+== Set Your Current Working Directory
+
+In order for Ansible to see the provided modules and roles, 
+`ansible-playbook` should always be called from the top 
+directory of the ansible-ravello repository.
+
+```
+cd <path/to>/ansible-ravello
+```
+
+== Create a Dynamic Inventory
+
+This repository provides the core of a dynamic inventory script at 
+`ravello-ansible/inventory/ravello.py`.  The `ravello.py`
+script requires the name of the provisioned Ravello app to be passed
+as an extra argument.  Since Ansible can not pass extra arguments to the
+dynamic inventory, it is necessary create an app-specific inventory script to
+act as a wrapper around `ravello.py`.  
+
+This repository provides a utility for creating app-specific dynamic inventories.
+
+From the top-level directory of `ansible-ravello`, execute the command:
+
+```
+./tools/create-inventory my.first.app -o ./inventory/my.first.app
+```
+
+You will use this newly created inventory any time you run `ansible-playbook`.
+
+== Create the Playbook
+
+In the top level directory of the `ansible-ravello` repo, create 
+a new file called `my-first-app.yml`.  This playbook file will 
+do two things:
+
+* Set the application name using the variable `application_name`
+* Call the `ravello-provision-app` role
+
+```
+---
+# my-first-app.yml
+
+- name: provision my first application
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: my.first.app
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app
+```
+
+== Deploying the Application
+
+You are now ready to deploy your first Ravello application with Ansible.  
+Run `ansible-playbook` from the top-level directory of the `ansible-ravello`
+repository to build and launch your application.
+
+```
+ansible-playbook -i inventory/my-first-app my-first-app.yml -vv
+```
+
+Ansible will begin provisioning your application in Ravello.
+It will take a few moments before the application is ready.
+
+== Accessing Your Deployed Environment
+
+If Ansible succeeds, then congratulations, your first app is ready!
+
+If you check the applications list in your account on the Ravello web UI,
+you will see a new app called `my.first.app`.  It will contain 
+two instances as follows:
+
+* `bastion` - externally facing
+* `server`  - internal to application subnet
+
+The `bastion` instance will be resolvable over via the public web, but
+the `server` instance is private.  Traffic to `server` must be routed 
+through the bastion.
+
+At this point, your application should be accessible via ssh, but no 
+passwords have been set yet.  The final step in this introductory tutorial
+is to set passwords on your application instances via ssh.  In future tutorials 
+we will automate password setup, but for new we will set passwords manually. 
+
+As part of the application provisioning process, the `ravello-provision-app`
+role will have generated an application work directory located at 
+`ansible-ravello/workdir/my.first.app/`.  Within that work directory will be an 
+ssh keypair you can use to access your new app.
+
+To find the public hostname of the bastion instance, you can use the Ravello 
+web UI or execute the following command:
+
+```
+./inventory/my-first-app --list | gawk 'match($0, /proxyFqdn/){print substr($2,2,length($2)-3)}' | uniq
+```
+
+To access the bastion, execute the following ssh command
+replacing <bastion-public-fqdn> with the public hostname of the 
+`bastion` instance:
+
+```
+user@localhost $ ssh -i workdir/my.first.app/my.first.app.id_rsa cloud-user@<bastion-public-fqdn>
+
+= Set password on bastion
+cloud-user@bastion $ sudo su -c "passwd"
+
+= ssh to server from bastion
+cloud-user@bastion $ ssh server
+
+= Set password on server
+cloud-user@server $ sudo su -c "passwd"
+```
+
+You should now be able to access your instances through 
+the console in the Ravello web UI.
+
+== Next Steps
+
+The next tutorial covers how to configure the number of virtual machine 
+instances and their virtual hardware configurations in the 
+`ravello-provision-app` role.
+
