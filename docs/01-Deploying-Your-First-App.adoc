@@ -140,7 +140,7 @@ To find the public hostname of the bastion instance, you can use the Ravello
 web UI or execute the following command:
 
 ```
-./tools/get-app-proxies my.first.app 
+./tools/get-app-fqdns my.first.app --proxies
 ```
 
 To access the bastion, execute the following ssh command

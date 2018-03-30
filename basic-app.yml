@@ -15,7 +15,7 @@
     - repo_method: activationkey
   vars_files:
     # rhn credentials
-    - ./workdir/activation-key.yml
+    - <path/to/credentials/file>
   tags:
     - repos
   hosts: 

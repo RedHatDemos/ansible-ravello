@@ -5,7 +5,6 @@ THIS_DIR=$(dirname $(readlink -f $0))
 
 while [[ $# -gt 0 ]]; do
 
-
 case $1 in
   -o)
   OUT_FILE=$2

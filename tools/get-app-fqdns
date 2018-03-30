@@ -1,0 +1,44 @@
+#!/bin/env bash
+
+
+while [[ $# -gt 0 ]]; do
+case $1 in
+  --all)
+  GET_ALL="yes"
+  shift
+  ;;
+  --proxies)
+  GET_PROXIES="yes"
+  shift
+  ;;
+  --*)
+    echo "invalid argument: $1"
+    exit
+  shift
+  ;;
+  *)
+  APP_NAME=$1
+  shift
+  ;; 
+esac
+done
+
+THIS_DIR=$(dirname $(readlink -f $0))
+
+
+if [[ "$GET_PROXIES" == "yes" ]]; then
+  echo "SSH Proxies"
+  $THIS_DIR/../inventory/ravello.py --list $APP_NAME | \
+    gawk 'match($0, /proxyFqdn/){print substr($2,2,length($2)-3)}' | uniq
+  echo
+else
+  GET_ALL="yes"
+fi
+
+if [[ "$GET_ALL" == "yes" ]]; then
+  echo "All fqdns"
+  $THIS_DIR/../inventory/ravello.py --list $APP_NAME | \
+    gawk 'match($0, /externalFqdn/){print substr($2,2,length($2)-3)}' | uniq
+  echo
+fi
+

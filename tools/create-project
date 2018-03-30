@@ -3,8 +3,6 @@
 APP_NAME=$1
 THIS_DIR=$(dirname $(readlink -f $0))
 
-
-
 if [[ "$APP_NAME" != "" ]]; then
 
 mkdir $APP_NAME && \
@@ -19,5 +17,4 @@ END
 $THIS_DIR/create-inventory $APP_NAME -o $APP_NAME/inventory
 
 fi
-
 
