@@ -24,6 +24,7 @@ class ModuleFail:
             raise Exception(msg)
         else:
             self.module.fail_json(msg=msg)
+module_fail = ModuleFail()
 
 def maybe_digit(item):
     if (item.isdigit()):
@@ -105,47 +106,17 @@ def ravello_template_get(json_item, jspath_str, **kwargs):
             raise exception("error: invalid json_path string: " + jspath_str)
     return recur(json_item, jspath)
 
-def check_for_param(json_item, jspath, **kwargs):
-    full_jspath = jspath
-    def cfp_helper(json_item, jspath, **kwargs):
-         valid = from_kwargs(kwargs, 'valid_options', []) 
-         fail_msg = from_kwargs(kwargs, 'fail_msg',
-                 "Template Error: " + full_jspath + " - Missing or invalid.\nIn json item: "  + json.dumps(json_item))
-         required = from_kwargs(kwargs, 'required', True)
-         if type(valid) is str:
-             valid = [valid]
-         if type(valid) is list:
-             valid_list = valid
-             valid = lambda val: val in valid_list
-         if not callable(valid):
-             raise Exception('Error: `valid` kwarg must of type string, list, or parity 1 function')
-         def recur(json_slice, jspath):
-             if type(jspath) is str:
-               jspath = re.split(r'(?<!\\)\.', jspath)
-             if len(jspath) > 1:
-                 if not json_head_contains(json_slice, maybe_digit(jspath[0])):
-                     if not required:
-                         return False
-                     if 'default_if_missing' in kwargs:
-                         ravello_template_set(json_item, '.'.join(jspath), value)
-                     module_fail(fail_msg)
-                 return recur(json_slice[maybe_digit(jspath[0])], jspath[1:])
-             elif len(jspath) == 1:
-                 if not json_head_contains(json_slice, maybe_digit(jspath[0])):
-                     if not required:
-                         return False
-                     if 'default_if_missing' not in kwargs:
-                       module_fail(fail_msg)
-                     else:
-                       json_insert_head(json_slice, maybe_digit(jspath[0]),
-                               kwargs['default_if_missing'])
-                 if 'valid' not in kwargs:
-                     return True
-                 else:
-                     return valid(json_slice[maybe_digit(jspath[0])])
-             else:
-                 raise Exception("Error: invalid json path string")
-         return recur(json_item, jspath)
-    return cfp_helper(json_item, jspath, **kwargs)
+def json_path_contains(json_item, jspath):
+    def recur(json_slice, split_path):
+        if len(split_path) > 1:
+            if not json_head_contains(json_slice, maybe_digit(split_path[0])):
+                return False
+            return recur(json_slice[maybe_digit(split_path[0])], split_path[1:])
+        elif len(split_path) == 1:
+            if not json_head_contains(json_slice, maybe_digit(split_path[0])):
+                return False
+            return True
+        else:
+            raise Exception("Error: invalid json path string")
+    return recur(json_item, re.split(r'(?<!\\)\.', jspath))
 
-module_fail = ModuleFail()
