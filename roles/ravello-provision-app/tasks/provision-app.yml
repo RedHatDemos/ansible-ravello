@@ -2,21 +2,23 @@
 
 - set_fact:
     instances: "{{ instances | map('combine', {'public_key' : env_public_key}) | list }}"
-  when: instances.public_key is not defined
+  when: (instances.public_key is not defined) and use_cloud_template_module
 
 - set_fact:
     instances: "{{ instances | map('combine', {'private_key_path' : ssh_key_path}) | list }}"
-  when: instances.private_key_path is not defined
+  when: (instances.private_key_path is not defined) and use_cloud_template_module
 
 - name: Create ravello cloud jinja template from vm instance definitions
   ravello_cloud_template:
     path: "{{ template_path }}.j2"
     instances: "{{ instances }}"
+  when: use_cloud_template_module
 
 - name: Expand jinja template into finalized ravello template
   template:
     src: "{{ template_path }}.j2"
     dest: "{{ template_path }}"
+  when: use_jinja_cloud_template
 
 - name: "build staging app based on {{ app_template }}"
   local_action:
@@ -26,7 +28,6 @@
     app_template: "{{ template_path }}"
     state: design
   register: design_results
-
 
 - name: publish application and wait for start
   local_action:

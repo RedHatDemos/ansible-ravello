@@ -16,5 +16,5 @@
 - meta: refresh_inventory
 
 - name: copy private key to proxy hosts
-  include_tasks: "./copy_private_key_to_proxies.yml"
+  include_tasks: "./configure_ssh_access.yml"
 

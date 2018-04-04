@@ -1,0 +1,10 @@
+[Unit]
+Description=Fix HAProxy publicURL
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/local/bin/update_HAProxy.sh
+Type=simple
+
+[Install]
+WantedBy=default.target

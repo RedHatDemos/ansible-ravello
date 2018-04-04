@@ -1,0 +1,29 @@
+repos_to_enable:
+  - rhel-7-server-rpms
+  - rhel-7-server-extras-rpms
+  - rhel-7-server-ose-3.7-rpms
+  - rhel-7-fast-datapath-rpms
+
+common_packages:
+   - python
+   - bind
+   - git
+   - net-tools
+   - iptables-services
+   - bridge-utils
+   - kexec-tools
+   - sos
+   - haproxy
+   - psacct
+   - unzip
+   - bash-completion
+   - tmux
+   - bind-utils
+   - wget
+   - ansible
+   - git
+   - vim-enhanced
+
+openshift_packages:
+   - atomic-openshift-utils
+   - atomic-openshift-clients

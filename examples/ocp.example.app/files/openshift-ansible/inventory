@@ -1,0 +1,20 @@
+[OSv3:children]
+masters
+nodes
+etcd
+
+[masters]
+master.example.com
+
+[etcd]
+master.example.com
+
+[nodes]
+master.example.com openshift_node_labels="{'region': 'infra', 'zone': 'default'}" openshift_public_hostname=master.example.com openshift_hostname=master.example.com
+node01.example.com openshift_node_labels="{'region': 'primary', 'zone': 'main'}"
+node02.example.com openshift_node_labels="{'region': 'primary', 'zone': 'main'}"
+node03.example.com openshift_node_labels="{'region': 'primary', 'zone': 'main'}" 
+
+[all:vars]
+ansible_ssh_private_key_file=/root/.ssh/id_rsa
+

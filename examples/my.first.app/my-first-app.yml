@@ -1,0 +1,32 @@
+---
+# my-first-app.yml
+
+- name: provision my first application
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: my.first.app
+   # The `instances` dictionary tells the ravello-provision-app
+   # role how to provision VMs
+    - instances:
+      - name: bastion
+        services:
+          - protocol: ssh
+            port: 22
+      - name: server
+        proxy: bastion
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app
+
+- name: set login message on instances
+  become: true
+  hosts:
+    - bastion
+    - server
+  tasks:
+    - copy:
+        content: "Welcome to {{ inventory_hostname }}!\n"
+        dest: /etc/motd

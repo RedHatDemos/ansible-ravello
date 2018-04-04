@@ -12,6 +12,8 @@ publish_region: default
 publish_cloud: default
 wait_timeout: 1800
 env_expire: 120
+use_cloud_template_module: True
+use_jinja_cloud_template: True
 
 instances:
   - name: bastion

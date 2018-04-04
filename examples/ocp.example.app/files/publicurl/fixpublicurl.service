@@ -1,0 +1,10 @@
+[Unit]
+Description=Fix OpenShift publicURL
+After=atomic-openshift-master.service
+
+[Service]
+ExecStart=/usr/local/bin/update_publicURL.sh
+Type=simple
+
+[Install]
+WantedBy=default.target

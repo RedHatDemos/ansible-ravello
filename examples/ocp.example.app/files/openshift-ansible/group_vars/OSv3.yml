@@ -1,0 +1,15 @@
+deployment_type: openshift-enterprise
+openshift_master_default_subdomain: apps.example.com
+#openshift_use_dnsmasq: false
+openshift_use_openshift_sdn: true
+openshift_schedulable: True
+openshift_clock_enabled: true
+#ansible_become: true
+
+openshift_master_identity_providers:
+  - name: htpasswd_auth
+    login: true
+    challenge: true
+    kind: HTPasswdPasswordIdentityProvider
+    filename: /etc/origin/master/htpasswd
+

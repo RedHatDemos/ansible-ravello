@@ -1,0 +1,83 @@
+# instances.yml
+
+instances:
+  - name: workstation
+    hostname: workstation.example.com
+    cpus: 2
+    ram: 6
+    disks:
+      - size: 40
+      - size: 100
+    nics:
+      - name: eth0
+        ip: 192.168.0.5
+    services:
+        - protocol: SSH
+          port: 22
+        - name: dns-t
+          protocol: TCP
+          port: 53
+        - name: dns-u
+          protocol: UDP
+          port: 53
+        - name: oseapi
+          protocol: TCP
+          port: 80,8443,8080-8085
+
+
+  - name: master
+    hostname: master.example.com
+    proxy: workstation
+    cpus: 4
+    ram: 16
+    disks:
+      - size: 80
+      - size: 10
+    nics:
+      - name: eth0
+        ip: 192.168.0.11
+
+
+  - name: node01
+    hostname: node01.example.com
+    proxy: workstation
+    groups: 
+      - ocp_nodes
+    cpus: 4
+    ram: 12
+    disks:
+      - size: 50
+      - size: 10
+    nics:
+      - name: eth0
+        ip: 192.168.0.12
+
+
+  - name: node02
+    hostname: node02.example.com
+    proxy: workstation
+    groups: 
+      - ocp_nodes
+    cpus: 4
+    ram: 12
+    disks:
+      - size: 50
+      - size: 10
+    nics:
+      - name: eth0
+        ip: 192.168.0.13
+
+
+  - name: node03
+    hostname: node03.example.com
+    proxy: workstation
+    groups: 
+      - ocp_nodes
+    cpus: 4
+    ram: 12
+    disks:
+      - size: 50
+      - size: 10
+    nics:
+      - name: eth0
+        ip: 192.168.0.14

@@ -1,0 +1,7 @@
+#!/bin/env bash
+
+if [[ $1 == '--list' ]]; then
+  python ../../inventory/ravello.py --list my.first.app
+elif [[ $1 == '--hosts' ]]; then
+  python ../../inventory/ravello.py --hosts
+fi

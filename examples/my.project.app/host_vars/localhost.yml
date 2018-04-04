@@ -1,0 +1,48 @@
+# host_vars/localhost.yml
+
+instances:
+  - name: bastion
+    hostname: bastion.example.com
+    cpus: 1
+    ram: 2
+    disks:
+      - size: 50
+      - size: 100
+    nics:
+      - name: eth0
+        ip: 192.168.1.10
+    services:
+        - protocol: ssh
+          port: 22
+
+  - name: webserver1
+    hostname: webserver1.example.com
+    proxy: bastion
+    groups: 
+      - webservers
+    cpus: 2
+    ram: 4
+    disks:
+      - size: 50
+    nics:
+      - name: eth0
+        ip: 192.168.10.11
+    services:
+        - protocol: http
+          port: 80
+
+  - name: webserver2
+    hostname: webserver2.example.com
+    proxy: bastion
+    groups: 
+      - webservers 
+    cpus: 2
+    ram: 4
+    disks:
+      - size: 50
+    nics:
+      - name: eth0
+        ip: 192.168.10.12
+    services:
+        - protocol: http
+          port: 80

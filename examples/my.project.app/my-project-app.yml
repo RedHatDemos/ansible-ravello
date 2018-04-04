@@ -1,0 +1,64 @@
+---
+# my-project-app.yml
+
+- name: provision my first project
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: my.project.app
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app
+
+
+- name: enable repositories
+  become: true
+  hosts: 
+    - bastion.example.com
+    - webserver1.example.com
+    - webserver2.example.com
+  vars_files:
+    # rhn credentials
+    - workdir/credentials.yml
+  vars:
+    - repos_to_enable:
+      - rhel-7-server-rpms
+      - rhel-7-server-rh-common-rpms
+      - rhel-7-server-extras-rpms
+  tasks:
+    - include_role: 
+        name: set-repositories
+
+
+- name: update systems and reboot
+  become: true
+  hosts: 
+    - bastion.example.com
+    - webserver1.example.com
+    - webserver2.example.com
+  tasks:
+    - yum:
+        name: "*"
+        state: latest
+    - include_role: 
+        name: reboot-host
+
+
+- name: install and configure httpd
+  become: true
+  hosts: 
+    - webserver1.example.com
+    - webserver2.example.com
+  tasks:
+    - yum:
+        name: "httpd"
+        state: latest
+    - service:
+        name: httpd
+        state: started
+        enabled: yes
+    - copy:
+        content: "<p>Hello from {{ inventory_hostname }}!</p>"
+        dest: /var/www/html/index.html

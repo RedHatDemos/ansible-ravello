@@ -14,7 +14,7 @@ roles_path   = `realpath $THIS_DIR/../roles`
 module_utils = `realpath $THIS_DIR/../module_utils`
 END
 
-$THIS_DIR/create-inventory $APP_NAME -o $APP_NAME/inventory
+$THIS_DIR/create-inventory `basename $APP_NAME` -o $APP_NAME/inventory
 
 fi
 

@@ -762,13 +762,14 @@ def assert_vm_valid(client, module, vm):
     return vm
 
 def create_subnet_with_ip_pool(client, module, appID, netip):
-    # create the vlan
+    # create the vlan switch
     created_app = client.get_application(appID)
     set_default_if_missing(created_app, 'design.network.switches', [])
     new_switch_path = path_for_next_item(created_app, 'design.network.switches')
     ravello_template_set(created_app, 
             new_switch_path + '.networkSegments.0.vlanId', 1)
     client.update_application(created_app)
+    # create the subnet
     created_app = client.get_application(appID)
     set_default_if_missing(created_app, 'design.network.subnets', [])
     new_subnet_path = path_for_next_item(created_app, 'design.network.subnets')
@@ -782,6 +783,7 @@ def create_subnet_with_ip_pool(client, module, appID, netip):
             new_subnet_path + '.networkSegmentId', 
             new_switch_network_segment_id)
     client.update_application(created_app)
+    # set the subnet ip pool
     created_app = client.get_application(appID)
     set_default_if_missing(created_app, 'design.network.services.networkInterfaces', [])
     new_l3_nic_path = path_for_next_item(created_app,
@@ -801,6 +803,7 @@ def create_subnet_with_ip_pool(client, module, appID, netip):
             'mask': str(netip.netmask)
           })
     client.update_application(created_app)
+    # attach the router
     created_app = client.get_application(appID)
     set_default_if_missing(created_app, \
         'design.network.services.routers.0.ipConfigurationIds', [])
@@ -815,6 +818,7 @@ def create_subnet_with_ip_pool(client, module, appID, netip):
                 new_l3_nic_path + '.id'),
             'SERVICES')
     client.update_application(created_app)
+    # create dhcp server for subnet
     created_app = client.get_application(appID)
     set_default_if_missing(created_app, 
         'design.network.services.dhcpServers', [])
@@ -997,7 +1001,10 @@ def update_app_with_internal_luids(client, module, app_request, appID):
                                  nic_name = entry
                                  break
                          if not found:
-                             module_fail("ip not found: " + service_req['ip'] + "for " + vm_hostname + " " + nic_name + "                      " + json.dumps(hostname_ip_mapping))
+                             module_fail("ip not found: " + service_req['ip'] + \
+                                 "for " + vm_hostname + " " + nic_name + \
+                                 "                      " + \
+                                 json.dumps(hostname_ip_mapping))
                 if (nic_name not in hostname_ip_mapping[vm_hostname]):
                     module_fail(nic_name + vm_hostname + "\n" + json.dumps(hostname_ip_mapping))
                 svc['useLuidForIpConfig'] = True
@@ -1017,7 +1024,7 @@ def detect_ips_and_and_create_compatible_subnets(client, module, appID, app_requ
                        subnet_exists = True
                 if not subnet_exists:
                     new_net = IPNetwork(ip + '/16')
-                net_list.append(new_net)
+                    net_list.append(new_net)
             elif check_item_exists(nic, 'ipConfig.staticIpConfig.ip'):
                     '.'.join(nic['ipConfig']['staticIpConfig']['ip'].split('.')[:-3])
     # Remove the Ravello auto-generated subnet
@@ -1026,5 +1033,4 @@ def detect_ips_and_and_create_compatible_subnets(client, module, appID, app_requ
     else:
         for net in net_list:
             create_subnet_with_ip_pool(client, module, appID, net)
-
 main()

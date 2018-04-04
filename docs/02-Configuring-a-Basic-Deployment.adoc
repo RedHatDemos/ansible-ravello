@@ -43,8 +43,8 @@ module_utils = <path/to>/ansible-ravello/module_utils
 
 Create a playbook in the new project directory as you did 
 in the previous tutorial, replacing the old application name
-with the name of the new project.  Additionally, include the 
-vars file `instances.yml`, which we will create next.
+with the name of the new project.  Additionally, define VM
+instances in `host_vars/localhost.yml`, which we will create next.
 
 
 ```
@@ -57,8 +57,6 @@ vars file `instances.yml`, which we will create next.
    # This variable is used by the ravello-provision-app role
    # to determine the application name
     - application_name: my.project.app
-  vars_files:
-    - instances.yml
   tasks:
    # This role provisions a new application in ravello
     - include_role:
@@ -67,10 +65,14 @@ vars file `instances.yml`, which we will create next.
 
 == Define the Instances
 
-We will create a bastion VM and two webservers in `instances.yml`.
+We will create a bastion VM and two webservers the hostvars file for localhost.
 
 ```
-# instances.yml
+mkdir host_vars && touch host_vars/localhost.yml
+```
+
+```
+# host_vars/localhost.yml
 
 instances:
   - name: bastion
@@ -210,8 +212,6 @@ last, and will wait for the instances to be available again.
    # This variable is used by the ravello-provision-app role
    # to determine the application name
     - application_name: my.project.app
-  vars_files:
-    - instances.yml
   tasks:
    # This role provisions a new application in ravello
     - include_role:
