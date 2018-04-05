@@ -26,3 +26,29 @@
   with_items: "{{ hostvars.values() | list }}"
   when: (item.hostnameIsProxy is defined) and (not item.hostnameIsProxy)
 
+- name: configure root password
+  block:
+    - name: register hashed password
+      command: openssl passwd {{ new_root_password }}
+      register: hashed_root_pw
+    - name: set passwords
+      become: true
+      command: usermod -p {{ hashed_root_pw.stdout }} root
+      delegate_to: "{{ item.inventory_hostname }}"
+      when: new_root_password is defined and (item.hostnameIsProxy is defined) and (not item.hostnameIsProxy)
+      with_items: "{{ hostvars.values() | list }}"
+  no_log: true
+
+
+- name: configure user password
+  block:
+    - name: register hashed password
+      command: openssl passwd {{ new_user_password }}
+      register: hashed_user_pw
+    - name: set passwords
+      become: true
+      command: usermod -p {{ hashed_user_pw.stdout }} {{ ansible_user }}
+      delegate_to: "{{ item.inventory_hostname }}"
+      when: new_user_password is defined and (item.hostnameIsProxy is defined) and (not item.hostnameIsProxy)
+      with_items: "{{ hostvars.values() | list }}"
+  no_log: true

@@ -2,11 +2,16 @@
 # my-project-app.yml
 
 - name: provision ocp example app
+  tags:
+    - provision
   hosts: localhost
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
     - application_name: ocp.example.app
+  vars_files:
+    # for setting root and user passwords
+    - workdir/secrets.yml
   tasks:
    # This role provisions a new application in ravello
     - include_role:
@@ -18,7 +23,7 @@
   hosts: all
   vars_files:
     # rhn credentials
-    - workdir/credentials.yml
+    - workdir/secrets.yml
   vars:
   tasks:
     - include_role: 
