@@ -5,7 +5,7 @@
 The following dependencies must be installed:
 
 - Python >= 2.7
-- Ravello Python Sdk
+- Ravello Python Sdk (`ravello-sdk` from `pip`)
 - Ansible >=2.3
 
 Credentials for a ravello subscription must be stored in 
@@ -46,7 +46,7 @@ This repository provides a utility for creating app-specific dynamic inventories
 From the top-level directory of `ansible-ravello`, execute the command:
 
 ```
-./tools/create-inventory my.first.app -o ./inventory/my.first.app
+./tools/create-inventory my.first.app -o ./inventory
 ```
 
 You will use this newly created inventory any time you run `ansible-playbook`.
@@ -105,7 +105,7 @@ Run `ansible-playbook` from the top-level directory of the `ansible-ravello`
 repository to build and launch your application.
 
 ```
-ansible-playbook -i inventory/my-first-app my-first-app.yml -vv
+ansible-playbook -i inventory my-first-app.yml -vv
 ```
 
 Ansible will begin provisioning your application in Ravello.
@@ -140,7 +140,7 @@ To find the public hostname of the bastion instance, you can use the Ravello
 web UI or execute the following command:
 
 ```
-./tools/get-app-fqdns my.first.app --proxies
+./inventory --proxy-fqdns
 ```
 
 To access the bastion, execute the following ssh command
