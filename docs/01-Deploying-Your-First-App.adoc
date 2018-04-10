@@ -48,7 +48,7 @@ This repository provides a utility for creating app-specific dynamic inventories
 From the top-level directory of `ansible-ravello`, execute the command:
 
 ```
-./tools/create-inventory my.first.app -o ./inventory
+./tools/create-inventory my.first.app -o app-inventory
 ```
 
 You will use this newly created inventory any time you run `ansible-playbook`.
@@ -107,7 +107,7 @@ Run `ansible-playbook` from the top-level directory of the `ansible-ravello`
 repository to build and launch your application.
 
 ```
-ansible-playbook -i inventory my-first-app.yml -vv
+ansible-playbook -i app-inventory my-first-app.yml -vv
 ```
 
 Ansible will begin provisioning your application in Ravello.
@@ -142,7 +142,7 @@ To find the public hostname of the bastion instance, you can use the Ravello
 web UI or execute the following command:
 
 ```
-./inventory --proxy-fqdns
+./app-inventory --proxy-fqdns
 ```
 
 To access the bastion, execute the following ssh command

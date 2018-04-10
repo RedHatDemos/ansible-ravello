@@ -289,7 +289,7 @@ def main():
             service_name=dict(default='ssh', type='str'),
             blueprint_description=dict(required=False, type='str'),
             blueprint_name=dict(required=False, type='str'),
-            wait=dict(type='bool', default=True ,choices=BOOLEANS),
+            wait=dict(type='bool', default=True),
             wait_timeout=dict(default=1200, type='int'),
             cost_bucket=dict(default='Default', type='str')
     )
