@@ -58,8 +58,12 @@
   tasks:
     - name: install docker
       yum:
-        name: docker-1.12.6
+        name: docker
         state: latest
+    - lineinfile:
+        dest: /etc/sysconfig/docker
+        regexp: '^OPTIONS=*'
+        line: 'OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"'
     - lineinfile:
         dest: /etc/sysconfig/docker
         regexp: '^OPTIONS=*'
@@ -112,10 +116,10 @@
         mode: 0600
 
 
-- name: deploy OCP from workstation
+- name: prepare workstation for OCP deploy
   hosts: workstation
   tags:
-    - deploy_ocp
+    - deploy_ocp_prep
   become: true
   tasks:
     - file:
@@ -180,9 +184,79 @@
         owner: "root"
         group: "root"
         mode: 0600
+
+- name: deploy OCP from workstation
+  hosts: workstation
+  tags:
+    - deploy_ocp
+  become: true
+  tasks:
     - name: run openshift-ansible install
       command: >
           ansible-playbook -i inventory 
-          /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml
+          /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
       args:
         chdir: /home/{{ ansible_user }}/openshift-ansible
+    - name: run openshift-ansible install
+      command: >
+          ansible-playbook -i inventory 
+          /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+      args:
+        chdir: /home/{{ ansible_user }}/openshift-ansible
+
+- name: configure ocp master node
+  hosts: master
+  become: true
+  tags:
+    - master_cfg
+  vars_files:
+    - workdir/secrets.yml
+  tasks:
+    - command: htpasswd -bc /etc/origin/master/htpasswd admin {{ new_ocp_password }}
+    - copy: 
+        src: "files/publicurl/fixpublicurl.service"
+        dest: "/etc/systemd/system/fixpublicurl.service"
+    - copy: 
+        src: "files/publicurl/update_publicURL.sh"
+        dest: "/usr/local/bin/update_publicURL.sh"
+        mode: a+x
+    - name: Enable and start fixpublicurl
+      systemd:
+        enabled: yes
+        state: started
+        name: fixpublicurl
+    - wait_for: 
+        host: "{{ inventory_hostname }}"
+        port: 8053
+    - name: get openshift token name
+      shell: "oc -n management-infra get secrets | grep admin-token | tail -1 | cut -d' ' -f1"
+      register: oc_token_name
+    - name: save openshift token
+      shell: "oc -n management-infra get secrets {{ oc_token_name.stdout }} --template='{{ '{{'  }}.data.token {{ '}}' }}' | base64 -d"
+      register: oc_token_output 
+    - set_fact: 
+        oc_token
+    - debug:
+        var: oc_token_output.stdout
+
+- name: save ocp token to bastion
+  hosts: workstation
+  become: true
+  tags:
+    - master_cfg
+  tasks:
+    - debug:
+        var: hostvars
+    - copy:
+        content: "{{ hostvars['master.example.com']['oc_token_output']['stdout'] }}"
+        dest: /root/ocp.token
+    - name: Enable and start fixhaproxy
+      systemd:
+        enabled: yes
+        state: started
+        name: fixhaproxy
+    - name: Enable and start haproxy
+      systemd:
+        enabled: yes
+        state: started
+        name: haproxy

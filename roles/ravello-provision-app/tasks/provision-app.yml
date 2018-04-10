@@ -27,7 +27,6 @@
     description: "{{ application_name }}"
     app_template: "{{ template_path }}"
     state: design
-  no_log: true
   register: design_results
 
 - name: publish application and wait for start
@@ -43,7 +42,6 @@
     publish_optimization: "{{ publish_optimization }}"
     region: "{{ publish_region }}"
     cloud: "{{ publish_cloud }}"
-  no_log: true
   register: app_results
 
 - name: delete blueprint used to create application
@@ -53,6 +51,5 @@
     app_name: "{{ app_results.app_name }}"
     module: ravello_module
     state: blueprint_delete
-  no_log: true
   register: bp_delete_results
 

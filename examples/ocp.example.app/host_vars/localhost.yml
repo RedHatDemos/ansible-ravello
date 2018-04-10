@@ -2,7 +2,7 @@
 
 instances:
   - name: workstation
-    hostname: workstation.example.com
+    hostname: [workstation-REPL.rhpds.opentlc.com, bastion.example.com]
     cpus: 2
     ram: 6
     disks:
@@ -36,6 +36,9 @@ instances:
     nics:
       - name: eth0
         ip: 192.168.0.11
+    services:
+      - protocol: TCP
+        port: 80,443,8443
 
 
   - name: node01
