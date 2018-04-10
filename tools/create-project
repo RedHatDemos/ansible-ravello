@@ -9,9 +9,9 @@ mkdir $APP_NAME && \
 cat > $APP_NAME/ansible.cfg << END
 # ansible.cfg
 [defaults]
-library      = `realpath $THIS_DIR/../library`
-roles_path   = `realpath $THIS_DIR/../roles`
-module_utils = `realpath $THIS_DIR/../module_utils`
+library      = `readlink -f $THIS_DIR/../library`
+roles_path   = `readlink -f $THIS_DIR/../roles`
+module_utils = `readlink -f $THIS_DIR/../module_utils`
 END
 
 $THIS_DIR/create-inventory `basename $APP_NAME` -o $APP_NAME/inventory

@@ -6,7 +6,9 @@ The following dependencies must be installed:
 
 - Python >= 2.7
 - Ravello Python Sdk (`ravello-sdk` from `pip`)
-- Ansible >=2.3
+- Ansible >= 2.3
+- Python Jinja2 >= 2.7
+- Python netaddr
 
 Credentials for a ravello subscription must be stored in 
 `~/.ravello_login`.  This repository provides a utility

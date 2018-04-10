@@ -22,14 +22,14 @@ OUTPUT="#!/bin/env bash
 APP_NAME=$APP_NAME
 
 if [[ \$1 == '--list' ]]; then
-  python $(realpath $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME
+  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME
 elif [[ \$1 == '--hosts' ]]; then
-  python $(realpath $THIS_DIR/../inventory/ravello.py) --hosts
+  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --hosts
 elif [[ \$1 == '--proxy-fqdns' ]]; then
-  python $(realpath $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
+  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
     gawk 'match(\$0, /proxyFqdn/){print substr(\$2,2,length(\$2)-3)}' | uniq
 elif [[ \$1 == '--all-fqdns' ]]; then
-  python $(realpath $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
+  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
     gawk 'match(\$0, /externalFqdn/){print substr(\$2,2,length(\$2)-3)}' | uniq
 fi"
 
