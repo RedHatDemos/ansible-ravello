@@ -31,6 +31,7 @@
     - name: register hashed password
       command: openssl passwd {{ new_root_password }}
       register: hashed_root_pw
+      when: new_root_password is defined
     - name: set passwords
       become: true
       command: usermod -p {{ hashed_root_pw.stdout }} root
@@ -45,6 +46,7 @@
     - name: register hashed password
       command: openssl passwd {{ new_user_password }}
       register: hashed_user_pw
+      when: new_user_password is defined
     - name: set passwords
       become: true
       command: usermod -p {{ hashed_user_pw.stdout }} {{ ansible_user }}
