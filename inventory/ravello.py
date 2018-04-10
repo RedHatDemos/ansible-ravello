@@ -98,7 +98,7 @@ def create_inv_by_attributes(app, groups):
         proxy = groups['_meta']['hostvars'][proxy_name]['externalFqdn']
         groups['_meta']['hostvars'][hostname]['proxyFqdn'] = proxy
         groups['_meta']['hostvars'][proxy_name]['hostIsProxy'] = True
-        hvars['ansible_ssh_common_args'] = '-o ProxyCommand="ssh -i {{ hostvars["' + hostname + '"]["ansible_ssh_private_key_file"] }} -W %h:%p -q {{ hostvars["' + proxy + '"]["ansible_user"] }}@'  + proxy + '"'
+        hvars['ansible_ssh_common_args'] = '-o StrictHostKeyChecking=no -o ProxyCommand="ssh -i {{ hostvars["' + hostname + '"]["ansible_ssh_private_key_file"] }} -W %h:%p -q {{ hostvars["' + proxy + '"]["ansible_user"] }}@'  + proxy + '"'
         for k, v in hvars.iteritems():
             groups['_meta']['hostvars'][hostname][k] = v 
     for vm in vms:
