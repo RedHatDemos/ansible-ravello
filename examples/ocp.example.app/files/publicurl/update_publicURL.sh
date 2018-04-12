@@ -96,5 +96,5 @@ sleep 15
 echo "Recreating pod"
 systemctl restart atomic-openshift-master-controllers atomic-openshift-master-api
 
-scp -oStrictHostKeyChecking=no /etc/motd root@bastion.example.com:/etc/motd
+scp -o StrictHostKeyChecking=no /etc/motd root@bastion.example.com:/etc/motd
 

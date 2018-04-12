@@ -11,7 +11,7 @@
 
 - name: copy private key to proxies
   shell: >
-    scp -i {{ ssh_key_path }} {{ ssh_key_path }} 
+    scp -o StrictHostKeyChecking=no -i {{ ssh_key_path }} {{ ssh_key_path }} 
     {{ item.ansible_user }}@{{ item.externalFqdn }}:~/.ssh/id_rsa
   with_items: "{{ hostvars.values() | list }}"
   when: (item.hostnameIsProxy is defined) and (item.hostnameIsProxy)
