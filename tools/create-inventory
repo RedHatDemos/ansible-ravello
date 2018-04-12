@@ -17,7 +17,7 @@ case $1 in
 esac
 done
 
-OUTPUT="#!/bin/env bash
+OUTPUT="#!/bin/bash
 
 APP_NAME=$APP_NAME
 
