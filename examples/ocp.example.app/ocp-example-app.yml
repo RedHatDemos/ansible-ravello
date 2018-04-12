@@ -116,64 +116,12 @@
         mode: 0600
 
 
-- name: prepare workstation for OCP deploy
+- name: deploy OCP from workstation
   hosts: workstation
   tags:
-    - deploy_ocp_prep
+    - deploy_ocp
   become: true
   tasks:
-    - file:
-        path: /var/named
-        state: directory
-    - name: copy named.conf
-      copy: 
-        src: "files/named/named.conf"
-        dest: "/etc/named.conf"
-    - name: copy named zone files
-      copy: 
-        src: "files/named/{{ item }}"
-        dest: "/var/named/{{ item }}"
-      with_items:
-        - 0.168.192.in-addr.arpa
-        - apps.example.com.zone
-        - example.com.zone
-    - name: Enable and start named.service
-      systemd:
-        state: started
-        enabled: yes
-        name: named
-    - name: copy haproxy.cfg
-      copy: 
-        src: "files/haproxy/haproxy.cfg"
-        dest: "/etc/haproxy"
-    - name: copy fixhaproxy.service
-      copy: 
-        src: "files/haproxy/fixhaproxy.service"
-        dest: "/etc/systemd/system/fixhaproxy.service"
-    - name: copy update_HAProxy.sh
-      copy: 
-        src: "files/haproxy/update_HAProxy.sh"
-        dest: "/usr/local/bin/update_HAProxy.sh"
-        mode: a+x
-    - lineinfile:
-        dest: /etc/NetworkManager/NetworkManager.conf
-        insertafter: '^.main.'
-        line: 'dns=none'
-    - name: Restart named.service
-      systemd:
-        state: restarted
-        enabled: yes
-        name: named
-    - name: restart NetworkManager
-      systemd:
-        state: restarted
-        name: NetworkManager
-    - copy:
-        content: |
-          search localdomain srv.ravcloud.com example.com
-          nameserver 192.168.0.1 # Ravello Internal DNS Server.
-          nameserver 192.168.0.5 # Bastion DNS Server
-        dest: /etc/resolv.conf
     - name: copy openshift-ansible
       copy: 
         src: "files/openshift-ansible"
@@ -184,13 +132,6 @@
         owner: "root"
         group: "root"
         mode: 0600
-
-- name: deploy OCP from workstation
-  hosts: workstation
-  tags:
-    - deploy_ocp
-  become: true
-  tasks:
     - name: run openshift-ansible install
       command: >
           ansible-playbook -i inventory 
@@ -239,24 +180,13 @@
     - debug:
         var: oc_token_output.stdout
 
-- name: save ocp token to bastion
+- name: Copy ocp token to bastion
   hosts: workstation
   become: true
   tags:
-    - master_cfg
+    - bastion_ocp_token
   tasks:
-    - debug:
-        var: hostvars
     - copy:
         content: "{{ hostvars['master.example.com']['oc_token_output']['stdout'] }}"
         dest: /root/ocp.token
-    - name: Enable and start fixhaproxy
-      systemd:
-        enabled: yes
-        state: started
-        name: fixhaproxy
-    - name: Enable and start haproxy
-      systemd:
-        enabled: yes
-        state: started
-        name: haproxy
+

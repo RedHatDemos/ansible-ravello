@@ -4,7 +4,7 @@ bastion="bastion.example.com"
 
 echo "waiting for bastion availability"
 
-while ! ssh root@$bastion; do
+while ! ssh -oStrictHostKeyChecking=no root@$bastion; do
   sleep 5
 done
 
@@ -13,7 +13,7 @@ master_cfg="$cfg_dir/master-config.yaml"
 console_cfg="$cfg_dir/webconsole-config.yaml"
 
 myExtIP=`curl -s http://www.opentlc.com/getip`
-myGUID=`ssh root@$bastion hostname|cut -f2 -d-|cut -f1 -d.`
+myGUID=`ssh -oStrictHostKeyChecking=no root@$bastion hostname|cut -f2 -d-|cut -f1 -d.`
 
 echo "Updating public URLs"
 
