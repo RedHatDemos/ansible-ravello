@@ -15,7 +15,6 @@
 #    password: "{{ rhel_subscription_pass }}"
     activationkey: "{{ activation_key }}"
     org_id: "{{ org }}"
-    autosubscribe: false
   register: task_result
 #  async: 300
 #  poll: 10

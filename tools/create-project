@@ -14,6 +14,22 @@ roles_path   = `readlink -f $THIS_DIR/../roles`
 module_utils = `readlink -f $THIS_DIR/../module_utils`
 END
 
+cat << END
+---
+\# $APP_NAME
+
+- name: provision my first project
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: my.project.app
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app
+END
+
 $THIS_DIR/create-inventory `basename $APP_NAME` -o $APP_NAME/inventory
 
 fi
