@@ -243,7 +243,7 @@ class RavelloInventory(object):
             myname = (json.dumps(app['name']))
             names.append(myname)
         for name in names:
-          print name 
+          print(name)
 
 
     def get_app(self):
@@ -263,7 +263,7 @@ class RavelloInventory(object):
             if str(app['name']) == myappname:
               myappid = app['id']
         if myappid == "":
-          print json.dumps(self._empty_inventory())
+          print(json.dumps(self._empty_inventory()))
           return 0
 
         #First, define empty lists for the the tags, groups, subgroups for tags/vms, and the formatted list for tower.
@@ -277,7 +277,7 @@ class RavelloInventory(object):
           appname = app['name']
           if "vms" in app["deployment"]:
               create_inv_by_attributes(app, groups)
-        print json.dumps(groups, indent=5)  
+        print(json.dumps(groups, indent=5))  
 
 #Run the script
 RavelloInventory()

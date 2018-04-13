@@ -1,12 +1,13 @@
 #!/bin/env bash
 
-APP_NAME=$1
+APP_PATH=$1
+APP_NAME=`basename $1`
 THIS_DIR=$(dirname $(readlink -f $0))
 
-if [[ "$APP_NAME" != "" ]]; then
+if [[ "$APP_PATH" != "" ]]; then
 
-mkdir $APP_NAME && \
-cat > $APP_NAME/ansible.cfg << END
+mkdir $APP_PATH && \
+cat > $APP_PATH/ansible.cfg << END
 # ansible.cfg
 [defaults]
 library      = `readlink -f $THIS_DIR/../library`
@@ -14,23 +15,35 @@ roles_path   = `readlink -f $THIS_DIR/../roles`
 module_utils = `readlink -f $THIS_DIR/../module_utils`
 END
 
-cat << END
+cat > ${APP_PATH}/${APP_NAME}.yml << END
 ---
-\# $APP_NAME
+# $APP_NAME.yml
 
 - name: provision my first project
   hosts: localhost
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.project.app
+    - application_name: $APP_NAME
   tasks:
    # This role provisions a new application in ravello
     - include_role:
         name: ravello-provision-app
 END
 
-$THIS_DIR/create-inventory `basename $APP_NAME` -o $APP_NAME/inventory
+mkdir $APP_PATH/host_vars
+cat > $APP_PATH/host_vars/localhost.yml << END
+---
+# host_vars/localhost.yml
+
+instances:
+  - name: bastion
+    cpus: 1
+    ram: 2
+END
+    
+
+$THIS_DIR/create-inventory $APP_NAME -o $APP_PATH/inventory
 
 fi
 
