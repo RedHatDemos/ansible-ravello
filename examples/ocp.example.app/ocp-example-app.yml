@@ -61,19 +61,16 @@
         name: docker
         state: latest
     - lineinfile:
-        dest: /etc/sysconfig/docker
-        regexp: '^OPTIONS=*'
-        line: 'OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"'
-    - lineinfile:
-        dest: /etc/sysconfig/docker
-        regexp: '^OPTIONS=*'
-        line: 'OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"'
-    - lineinfile:
         dest: /etc/sysconfig/docker-storage-setup
         line: 'DEVS=/dev/vdb'
     - lineinfile:
         dest: /etc/sysconfig/docker-storage-setup
         line: 'VG=docker-vg'
+    - name: Create docker storage
+      systemd:
+        state: started
+        enabled: yes
+        name: docker-storage-setup
     - name: Enable and start docker
       systemd:
         state: started
@@ -157,8 +154,8 @@
     - copy: 
         src: "files/publicurl/fixpublicurl.service"
         dest: "/etc/systemd/system/fixpublicurl.service"
-    - copy: 
-        src: "files/publicurl/update_publicURL.sh"
+    - get_url: 
+        src: "https://gist.githubusercontent.com/pericnenad/76f05a737413946addcdb03fea4e49c4/raw/846f912c04205dd5401eb16ba871da52272cd9ac/update_publicURL.sh"
         dest: "/usr/local/bin/update_publicURL.sh"
         mode: a+x
     - name: Enable and start fixpublicurl

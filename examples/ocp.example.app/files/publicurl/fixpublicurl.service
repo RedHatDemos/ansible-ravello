@@ -1,6 +1,6 @@
 [Unit]
 Description=Fix OpenShift publicURL
-After=atomic-openshift-master.service
+After=atomic-openshift-master-api.service
 
 [Service]
 ExecStart=/usr/local/bin/update_publicURL.sh
