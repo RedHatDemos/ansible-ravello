@@ -158,7 +158,7 @@
         src: "files/publicurl/fixpublicurl.service"
         dest: "/etc/systemd/system/fixpublicurl.service"
     - get_url: 
-        url: "https://gist.githubusercontent.com/pericnenad/76f05a737413946addcdb03fea4e49c4/raw/b743b3c60f1c58e31a62c469dec7f6323dfd95f7/update_publicURL.sh"
+        url: "https://gist.github.com/pericnenad/76f05a737413946addcdb03fea4e49c4"
         dest: "/usr/local/bin/update_publicURL.sh"
         mode: a+x
     - name: Enable and start fixpublicurl
