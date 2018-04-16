@@ -167,8 +167,8 @@ class Vm:
         self.hostvars = from_kwargs(kwargs, 'vars', {})
         self.groups = from_kwargs(kwargs, 'groups', None)
         self.remote_user = from_kwargs(kwargs, 'remote_user', 'cloud-user')
-        self.allow_nested= from_kwargs(kwargs, 'allowNested', False)
-        self.prefer_physical = from_kwargs(kwargs, 'preferPhysicalHost', False)
+        self.allow_nested= from_kwargs(kwargs, 'allow_nested', False)
+        self.prefer_physical = from_kwargs(kwargs, 'prefer_physical', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
                             Exception("private_key_path required"))
         self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
@@ -276,7 +276,8 @@ def main():
     logger.addHandler(ch)    
     argument_spec=dict(
       path=dict(required=True, type='str'),
-      instances=dict(required=True, type='list'))
+      instances=dict(required=True, type='list'),
+      subnets=dict(required=False, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -284,9 +285,13 @@ def main():
     module_fail.attach_ansible_modle(module)
     filepath = module.params.get('path')
     instances= module.params.get('instances')
-    t = gen_template(instances)
+    subnets= module.params.get('subnets')
+    t = gen_template(instances).to_yaml()
+    if subnets:
+        t['network'] = {}
+        t['network']['subnets'] = subnets
     with open(filepath, "w") as f:
-        f.write(yaml.safe_dump(t.to_yaml(), default_flow_style=False))
+        f.write(yaml.safe_dump(t, default_flow_style=False))
     module.exit_json(msg="Created template: " + filepath)
     
 main()

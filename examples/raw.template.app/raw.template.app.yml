@@ -1,0 +1,15 @@
+---
+# adv.network.app.yml
+
+- name: provision my first project
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: raw.template.app
+    - use_cloud_template_module: False
+    - template_in_path: "{{ application_name }}.template.j2"
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app

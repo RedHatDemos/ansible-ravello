@@ -2,7 +2,9 @@
 # defaults file for ravello-provision-app
 application_name: my.ravello.app
 workdir_path: "{{ playbook_dir }}/workdir/"
-template_path: "{{ workdir_path }}/{{ application_name }}.template"
+template_name: "{{ application_name }}.template"
+template_in_path: "{{ workdir_path }}/{{ template_name }}.j2"
+template_out_path: "{{ workdir_path }}/{{ template_name }}"
 ssh_key_path: "{{ workdir_path }}/{{ application_name }}.id_rsa"
 remote_user: cloud-user
 ssh_password_auth: False
@@ -20,3 +22,5 @@ instances:
     services:
       - protocol: ssh
         port: 22
+
+subnets: null

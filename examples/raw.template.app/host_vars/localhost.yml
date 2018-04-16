@@ -1,0 +1,41 @@
+---
+# host_vars/localhost.yml
+
+instances:
+  - name: workstation
+    hostname: [workstation.example.com, workstation-REPL.rhpds.opentlc.com]
+    cpus: 2
+    ram: 6
+    disks:
+      - size: 40
+      - size: 100
+    nics:
+      - name: eth0
+        ip: 10.0.0.5
+    services:
+      - name: ssh
+        protocol: SSH
+        port: 22
+      - name: dns-t
+        protocol: TCP
+        port: 53
+      - name: dns-u
+        protocol: UDP
+        port: 53
+
+  - name: controller
+    hostname: [controller.example.com, controller-REPL.rhpds.opentlc.com]
+    cpus: 2
+    ram: 6
+    disks:
+      - size: 40
+      - size: 100
+    nics:
+      - name: eth0
+        ip: 10.0.0.10
+      - name: eth1
+        ip: 192.168.20.10
+    services:
+      - name: dash
+        protocol: TCP
+        port: 80

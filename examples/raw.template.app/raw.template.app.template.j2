@@ -1,0 +1,126 @@
+vms:
+- allowNested: false
+  description: "\"0workstation\\nnohbac: true\\n\"\n#%ansible\nname: workstation\n\
+    vars:\n  ansible_ssh_private_key_file: {{ ssh_key_path }}\n\
+    \  ansible_user: cloud-user\n#%end\n"
+  hardDrives:
+  - boot: true
+    controller: virtio
+    imageName: rhel-guest-image-7.3-35.x86_64
+    index: 0
+    name: vol0
+    size:
+      unit: GB
+      value: 40
+    type: DISK
+  - boot: false
+    controller: virtio
+    index: 1
+    name: vol1
+    size:
+      unit: GB
+      value: 100
+    type: DISK
+  hostnames:
+  - workstation.example.com
+  - workstation-REPL.rhpds.opentlc.com
+  memorySize:
+    unit: GB
+    value: 6
+  name: 0workstation
+  networkConnections:
+  - device:
+      deviceType: virtio
+      index: 0
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: 10.0.0.5
+      hasPublicIp: true
+    name: eth0
+  numCpus: 2
+  preferPhysicalHost: false
+  suppliedServices:
+  - external: true
+    name: ssh
+    portRange: 22
+    protocol: SSH
+  - external: true
+    name: dns-t
+    portRange: 53
+    protocol: TCP
+  - external: true
+    name: dns-u
+    portRange: 53
+    protocol: UDP
+  supportsCloudInit: true
+  tag: workstation
+  userData: "  #cloud-config\n  ssh_pwauth: False\n  disable_root: False\n  users:\n\
+    \    - name: cloud-user\n      sudo: ALL=(ALL) NOPASSWD:ALL\n      lock_passwd:\
+    \ False\n      ssh-authorized-keys:\n      - ssh-rsa {{ env_public_key }}"
+- allowNested: false
+  description: "\"1controller\\nnohbac: true\\n\"\n#%ansible\nname: controller\nvars:\n\
+    \  ansible_ssh_private_key_file: {{ ssh_key_path }}\n\
+    \  ansible_user: cloud-user\n#%end\n"
+  hardDrives:
+  - boot: true
+    controller: virtio
+    imageName: rhel-guest-image-7.3-35.x86_64
+    index: 0
+    name: vol0
+    size:
+      unit: GB
+      value: 40
+    type: DISK
+  - boot: false
+    controller: virtio
+    index: 1
+    name: vol1
+    size:
+      unit: GB
+      value: 100
+    type: DISK
+  hostnames:
+  - controller.example.com
+  - controller-REPL.rhpds.opentlc.com
+  memorySize:
+    unit: GB
+    value: 6
+  name: 1controller
+  networkConnections:
+  - device:
+      deviceType: virtio
+      index: 0
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: 10.0.0.10
+      hasPublicIp: true
+    name: eth0
+  - device:
+      deviceType: virtio
+      index: 1
+      useAutomaticMac: true
+    ipConfig:
+      autoIpConfig:
+        reservedIp: 192.168.20.10
+      hasPublicIp: true
+    name: eth1
+  numCpus: 2
+  preferPhysicalHost: false
+  suppliedServices:
+  - external: true
+    name: dash
+    portRange: 80
+    protocol: TCP
+  supportsCloudInit: true
+  tag: controller
+  userData: "  #cloud-config\n  ssh_pwauth: False\n  disable_root: False\n  users:\n\
+    \    - name: cloud-user\n      sudo: ALL=(ALL) NOPASSWD:ALL\n      lock_passwd:\
+    \ False\n      ssh-authorized-keys:\n      - ssh-rsa {{ env_public_key }}"
+
+# define subnets
+network:
+  subnets:
+    - 192.168.20.0/24
+    - 10.0.0.0/24

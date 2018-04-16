@@ -3,6 +3,9 @@
 instances:
   - name: workstation
     hostname: [workstation-REPL.rhpds.opentlc.com, bastion.example.com]
+    # For baremetal
+    prefer_physical: true
+    allow_nested: true
     cpus: 2
     ram: 6
     disks:
@@ -28,6 +31,8 @@ instances:
   - name: master
     hostname: master.example.com
     proxy: workstation
+    prefer_physical: true
+    allow_nested: true
     cpus: 4
     ram: 16
     disks:
@@ -43,6 +48,8 @@ instances:
 
   - name: node01
     hostname: node01.example.com
+    prefer_physical: true
+    allow_nested: true
     proxy: workstation
     groups: 
       - ocp_nodes
@@ -58,6 +65,8 @@ instances:
 
   - name: node02
     hostname: node02.example.com
+    prefer_physical: true
+    allow_nested: true
     proxy: workstation
     groups: 
       - ocp_nodes
@@ -73,6 +82,8 @@ instances:
 
   - name: node03
     hostname: node03.example.com
+    prefer_physical: true
+    allow_nested: true
     proxy: workstation
     groups: 
       - ocp_nodes
@@ -84,3 +95,6 @@ instances:
     nics:
       - name: eth0
         ip: 192.168.0.14
+
+subnets:
+  - "192.168.0.0/24"

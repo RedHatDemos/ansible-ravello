@@ -171,9 +171,8 @@ last, and will wait for the instances to be available again.
 - name: update systems and reboot
   become: true
   hosts: 
-    - bastion.example.com
-    - webserver1.example.com
-    - webserver2.example.com
+    - bastion
+    - webservers
   tasks:
     - yum:
         name: "*"
@@ -187,9 +186,7 @@ last, and will wait for the instances to be available again.
 ```
 - name: install and configure httpd
   become: true
-  hosts: 
-    - webserver1.example.com
-    - webserver2.example.com
+  hosts:  webservers
   tasks:
     - yum:
         name: "httpd"
@@ -221,9 +218,8 @@ last, and will wait for the instances to be available again.
 - name: enable repositories
   become: true
   hosts: 
-    - bastion.example.com
-    - webserver1.example.com
-    - webserver2.example.com
+    - bastion
+    - webservers
   vars_files:
     # rhn credentials
     - <path/to/credentials/file>
@@ -240,9 +236,8 @@ last, and will wait for the instances to be available again.
 - name: update systems and reboot
   become: true
   hosts: 
-    - bastion.example.com
-    - webserver1.example.com
-    - webserver2.example.com
+    - bastion
+    - webservers
   tasks:
     - yum:
         name: "*"
@@ -254,8 +249,7 @@ last, and will wait for the instances to be available again.
 - name: install and configure httpd
   become: true
   hosts: 
-    - webserver1.example.com
-    - webserver2.example.com
+    - webservers
   tasks:
     - yum:
         name: "httpd"
@@ -282,6 +276,6 @@ When the deployment is finished, the webservers should be publicly be resolvable
 To obtain the fqdns of all of the instances, execute the following command:
 
 ```
-./tools/get-app-fqdns my.project.app --all
+./inventory --proxy-fqdns
 ```
 Paste the address of each webserver into a browser and you should see the greeting message.

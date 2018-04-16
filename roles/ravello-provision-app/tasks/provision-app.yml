@@ -10,14 +10,15 @@
 
 - name: Create ravello cloud jinja template from vm instance definitions
   ravello_cloud_template:
-    path: "{{ template_path }}.j2"
+    path: "{{ template_in_path }}"
     instances: "{{ instances }}"
+    subnets: "{{ subnets }}"
   when: use_cloud_template_module
 
 - name: Expand jinja template into finalized ravello template
   template:
-    src: "{{ template_path }}.j2"
-    dest: "{{ template_path }}"
+    src: "{{ template_in_path }}"
+    dest: "{{ template_out_path }}"
   when: use_jinja_cloud_template
 
 - name: "build staging app based on {{ app_template }}"
@@ -25,7 +26,7 @@
     module: ravello_module
     app_name: "{{ application_name }}-tmp"
     description: "{{ application_name }}"
-    app_template: "{{ template_path }}"
+    app_template: "{{ template_out_path }}"
     state: design
   register: design_results
 
