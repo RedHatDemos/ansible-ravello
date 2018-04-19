@@ -48,7 +48,7 @@ This repository provides a utility for creating app-specific dynamic inventories
 From the top-level directory of `ansible-ravello`, execute the command:
 
 ```
-./tools/create-inventory my.first.app -o app-inventory
+./tools/create-inventory <your-name>.first.app -o app-inventory
 ```
 
 You will use this newly created inventory any time you run `ansible-playbook`.
@@ -56,7 +56,7 @@ You will use this newly created inventory any time you run `ansible-playbook`.
 == Create the Playbook
 
 In the top level directory of the `ansible-ravello` repo, create 
-a new file called `my-first-app.yml`.  This playbook file will 
+a new file called `<your-name>-first-app.yml`.  This playbook file will 
 do the following things:
 
 * Set the application name using the variable `application_name`
@@ -66,14 +66,14 @@ do the following things:
 
 ```
 ---
-# my-first-app.yml
+# <your-name>-first-app.yml
 
 - name: provision my first application
   hosts: localhost
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.first.app
+    - application_name: <your-name>.first.app
    # The `instances` dictionary tells the ravello-provision-app
    # role how to provision VMs
     - instances:
@@ -107,7 +107,7 @@ Run `ansible-playbook` from the top-level directory of the `ansible-ravello`
 repository to build and launch your application.
 
 ```
-ansible-playbook -i app-inventory my-first-app.yml -vv
+ansible-playbook -i app-inventory <your-name>-first-app.yml -vv
 ```
 
 Ansible will begin provisioning your application in Ravello.
@@ -118,7 +118,7 @@ It will take a few moments before the application is ready.
 If Ansible succeeds, then congratulations, your first app is ready!
 
 If you check the applications list in your account on the Ravello web UI,
-you will see a new app called `my.first.app`.  It will contain 
+you will see a new app called `<your-name>.first.app`.  It will contain 
 two instances as follows:
 
 * `bastion` - externally facing
@@ -150,7 +150,7 @@ replacing <bastion-public-fqdn> with the public hostname of the
 `bastion` instance:
 
 ```
-user@localhost $ ssh -i workdir/my.first.app.id_rsa cloud-user@<bastion-public-fqdn>
+user@localhost $ ssh -i workdir/<your-name>.first.app.id_rsa cloud-user@<bastion-public-fqdn>
 
 = Set password on bastion
 cloud-user@bastion $ sudo su -c "passwd"

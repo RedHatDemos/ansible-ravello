@@ -22,10 +22,10 @@ Execute the following command to initialize a blank project directory containing
 an `ansible.cfg` file and a dynamic inventory:
 
 ```
-./tools/create-project my.project.app
+./tools/create-project <your-name>.project.app
 ```
 ```
-cd my.project.app/
+cd <your-name>.project.app/
 ```
 
 The resulting ansible.cfg file will look like this:
@@ -49,14 +49,14 @@ instances in `host_vars/localhost.yml`, which we will create next.
 
 ```
 ---
-# my-project-app.yml
+# <your-name>-project-app.yml
 
 - name: provision my first project
   hosts: localhost
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.project.app
+    - application_name: <your-name>.project.app
   tasks:
    # This role provisions a new application in ravello
     - include_role:
@@ -135,7 +135,7 @@ rhel_subscription_password: <password>
 ansible-vault encrypt <path/to/credentials>
 ```
 
-Add the following the play to `my-project-app.yml`.
+Add the following the play to `<your-name>-project-app.yml`.
 
 ```
 - name: enable repositories
@@ -201,14 +201,14 @@ last, and will wait for the instances to be available again.
 
 ```
 ---
-# my-project-app.yml
+# <your-name>-project-app.yml
 
 - name: provision my first project
   hosts: localhost
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.project.app
+    - application_name: <your-name>.project.app
   tasks:
    # This role provisions a new application in ravello
     - include_role:
@@ -267,7 +267,7 @@ last, and will wait for the instances to be available again.
 Deploy the app using the following command (or alternatively use a vault password file):
 
 ```
-ansible-playbook -i inventory my-project-app.yml --ask-vault-pass
+ansible-playbook -i inventory <your-name>-project-app.yml --ask-vault-pass
 ```
 
 == Accessing the Deployed Application
