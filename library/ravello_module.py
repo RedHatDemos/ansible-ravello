@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# (c) 2015, ravellosystems
-# 
-# author zoza
+#
+# author David Benoit <dbenoit@redhat.com>
+# author zoza ravellosystems
 #
 #
 # Ansible is free software: you can redistribute it and/or modify
