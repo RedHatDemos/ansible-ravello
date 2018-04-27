@@ -11,7 +11,12 @@
   include_tasks: "./ssh_env_keygen.yml"
 
 - name: provision application
+  include_tasks: "./provision-app-from-bp.yml"
+  when: blueprint_id is defined
+
+- name: provision application
   include_tasks: "./provision-app.yml"
+  when: blueprint_id is not defined
 
 - meta: refresh_inventory
 
