@@ -67,9 +67,6 @@ instances in `host_vars/localhost.yml`, which we will create next.
 
 We will create a bastion VM and two webservers the hostvars file for localhost.
 
-```
-mkdir host_vars && touch host_vars/localhost.yml
-```
 
 ```
 # host_vars/localhost.yml
