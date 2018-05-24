@@ -139,7 +139,7 @@ instances:
     disks:
       - name: vol
         size: 40
-        memory_unit: GB
+        mem_unit: GB
         bootable: <True on first hdd in list, False otherwise>
         image: <VM boot_image if bootable, none otherwise>
         device_type: DISK
@@ -213,7 +213,7 @@ class HardDrive:
         self.index  = from_kwargs(kwargs, 'index', Exception("index required for hdds"))
         self.name  = from_kwargs(kwargs, 'name', 'vol' + str(self.index))
         self.memory_size = from_kwargs(kwargs, 'size', 40)
-        self.memory_unit = from_kwargs(kwargs, 'memory_unit', "GB")
+        self.memory_unit = from_kwargs(kwargs, 'mem_unit', "GB")
         self.bootable = from_kwargs (kwargs, 'bootable', False)
         self.controller = "virtio"
         self.image =  from_kwargs(kwargs, 'image', '')

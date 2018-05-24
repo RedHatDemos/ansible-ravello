@@ -1,0 +1,6 @@
+---
+# defaults file for ravello-save-blueprint
+application_name: my.ravello.app
+blueprint_name: "{{ application_name }}-bp"
+remote_user: cloud-user
+

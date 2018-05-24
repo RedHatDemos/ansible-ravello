@@ -1,0 +1,33 @@
+---
+# tasks file for ravello-save-blueprint
+#
+- local_action:
+    module: ravello_app
+    name: '{{ application_name }}'
+    app_name: '{{ application_name }}'
+    blueprint_name: '{{ blueprint_name }}'
+    blueprint_description: 'Blueprint of app {{ env_type }}'
+    state: blueprint
+
+- name: wait for ssh proxies to be available
+  wait_for:
+    port: 22
+    host: "{{ item.externalFqdn }}"
+    search_regex: OpenSSH
+    delay: 30
+  with_items: "{{ hostvars.values() | list }}"
+  when: (item.hostnameIsProxy is defined) and (item.hostnameIsProxy)
+
+- name: wait for ssh connection to be released
+  pause:
+    seconds: 3
+
+- name: wait for host availability via proxy
+  wait_for:
+    port: 22
+    host: "{{ item.inventory_hostname }}"
+    search_regex: OpenSSH
+    delay: 30
+  delegate_to: "{{ item.proxyFqdn }}"
+  with_items: "{{ hostvars.values() | list }}"
+  when: (item.hostnameIsProxy is defined) and (not item.hostnameIsProxy)
