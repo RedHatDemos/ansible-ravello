@@ -26,8 +26,7 @@ options:
 
 
 EXAMPLES='''
-
-
+---
 # Create a ravello template for an app with 
 # the bastion as a proxy tunnel to reach the webserver
 - ravello_cloud_template:
