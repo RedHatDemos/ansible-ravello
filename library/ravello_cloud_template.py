@@ -10,6 +10,8 @@ description:
       ansible yaml dictionary of VM instances and network subnet definitions,
       and produces a complete cloud template which is ready to be used by the 
       ravello_module.  
+    - VMs can be assigned public and private keys for the ravello dynamic inventory
+      to use when setting up ssh connections and proxies
 options:
     path:
       description:
@@ -25,6 +27,142 @@ options:
 
 EXAMPLES='''
 
+
+# Create a ravello template for an app with 
+# the bastion as a proxy tunnel to reach the webserver
+- ravello_cloud_template:
+    path: "{{ template_in_path }}"
+    subnets:
+      - 10.0.0.0/24
+    instances: 
+      - name: bastion
+        services:
+          - protocol: ssh
+            port: 22
+        # This will install the public key to .ssh/authorized_keys
+        public_key: {{ your_public_key }}
+        # This tags the VM with the path of the ssh key on the
+        # control node that ansible should use to connect.
+        # It does not install the private key to the machine.
+        private_key_path: {{ ansible_private_key_path }}
+      - name: webserver
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+        # Tags the instance for the ravello dynamic inventory
+        # to set up the bastion as a proxy tunnel for this machine
+        proxy: bastion
+
+# Create a customized application with two 
+# webservers and a bastion.  
+- ravello_cloud_template:
+    path: "{{ template_in_path }}"
+    subnets:
+      - 192.168.0.0/16
+    instances:
+      - name: bastion
+        hostname: bastion.example.com
+        cpus: 1
+        ram: 2
+        disks:
+          - size: 50
+          - size: 100
+        nics:
+          - name: eth0
+            ip: 192.168.1.10
+        services:
+            - protocol: ssh
+              port: 22
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+      - name: webserver1
+        hostname: webserver1.example.com
+        proxy: bastion
+        groups: 
+          - webservers
+        cpus: 2
+        ram: 4
+        disks:
+          - size: 50
+        nics:
+          - name: eth0
+            ip: 192.168.10.11
+        services:
+            - protocol: http
+              port: 80
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+      - name: webserver2
+        hostname: webserver2.example.com
+        proxy: bastion
+        groups: 
+          - webservers 
+        cpus: 2
+        ram: 4
+        disks:
+          - size: 50
+        nics:
+          - name: eth0
+            ip: 192.168.10.12
+        services:
+            - protocol: http
+              port: 80
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+
+# Full api for the instances field.
+# Required values are marked as <required>
+# Otherwise, default values are shown
+instances:
+  - name: <required>
+    public_key: <required>
+    private_key_path: <required>
+    description: None
+    cpus: 1
+    ram: 2
+    mem_unit: GB
+    # ravello keypair name
+    keypair_name: None
+    # ravello keypair id
+    keypair_id: None
+    # hostname can also be a list of hostnames
+    hostname: <name>.example.com
+    # <name> of instance to proxy through
+    proxy: None
+    # username and ansible remote_user
+    remote_user: cloud_user
+    # Nested Virtualization
+    allow_nested: False
+    # Enable Baremetal
+    prefer_physical: False
+    # Boot image must be present on account
+    boot_image: rhel-guest-image-7.3-35.x86_64
+    # hard drives
+    disks:
+      - name: vol
+        size: 40
+        memory_unit: GB
+        bootable: <True on first hdd in list, False otherwise>
+        image: <VM boot_image if bootable, none otherwise>
+        device_type: DISK
+    # network devices
+    nics:
+      - name: <required>
+        controller: virtio
+        ip: None (auto-assigned)
+        public_ip: True
+        mac: None (auto-assigned)
+    # ports to open
+    services:
+     - protocol: <required>
+       name: <protocol>
+       # network device
+       device: None (auto-assigned)
+       # port or range of ports
+       port: <required>
+    # ansible inventory groups to add the instance to 
+    groups: [<name>]
+    # ansible variables to set when inventoried
+    vars: {}
 '''
     
 
