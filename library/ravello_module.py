@@ -107,7 +107,7 @@ options:
      - Path to a YML file that defines an application infrastructure then creates a blueprint for further processing with follow-on playbooks.  Must use state=design
   cost_bucket:
     description:
-     - Path to a YML file that defines an application infrastructure then creates a blueprint for further processing with follow-on playbooks.  Must use state=design
+     - Cost bucket to assign to the app.  Defaults to first available cost bucket on account.
 '''
 
 EXAMPLES = '''

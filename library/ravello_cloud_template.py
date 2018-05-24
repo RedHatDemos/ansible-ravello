@@ -1,5 +1,33 @@
 #!/bin/python
 
+DOCUMENTATION='''
+---
+module: ravello_cloud_template
+short_description: Quickly define cloud templates for ravellosystems applications
+description:
+    - This module provides defaults for most Ravello application parameters,
+      allowing template specifications to be concise.  The module takes an
+      ansible yaml dictionary of VM instances and network subnet definitions,
+      and produces a complete cloud template which is ready to be used by the 
+      ravello_module.  
+options:
+    path:
+      description:
+        - output destination of template.
+    instances:
+      description:
+        - a dictionary of virtual machine definitions. see examples for full usage.
+    subnets:
+      description:
+        - a list of CIDR block strings.
+'''
+
+
+EXAMPLES='''
+
+'''
+    
+
 import sys
 import yaml
 import random, string
@@ -280,8 +308,7 @@ def main():
       subnets=dict(required=False, type='list'))
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
-        mutually_exclusive=[['blueprint', 'app_template']])
+        argument_spec=argument_spec)
     module_fail.attach_ansible_modle(module)
     filepath = module.params.get('path')
     instances= module.params.get('instances')

@@ -13,6 +13,8 @@ Notes: In my testing, with >200 applications and ~1,000 virtual machines this to
        If the get_applications call in the Ravello Python SDK supported dumping design information this could be dramatically reduced.
 
 jlabocki <at> redhat.com or @jameslabocki on twitter
+
+dbenoit  <at> redhat.com
 '''
 
 import os
