@@ -22,6 +22,9 @@ options:
     subnets:
       description:
         - a list of CIDR block strings.
+    default_image:
+      description:
+        - boot image to assign to VMs when no local image definition is found
 '''
 
 
@@ -439,7 +442,8 @@ def main():
     argument_spec=dict(
       path=dict(required=True, type='str'),
       instances=dict(required=True, type='list'),
-      subnets=dict(required=False, type='list'))
+      subnets=dict(required=False, type='list'),
+      default_image=dict(required=False, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec)
@@ -447,7 +451,11 @@ def main():
     filepath = module.params.get('path')
     instances= module.params.get('instances')
     subnets= module.params.get('subnets')
+    default_image = module.params.get('default_image')
+
     t = gen_template(instances).to_yaml()
+    if default_image:
+        DEFAULT_BOOT_IMAGE = default_image
     if subnets:
         t['network'] = {}
         t['network']['subnets'] = subnets
