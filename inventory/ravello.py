@@ -20,7 +20,6 @@ dbenoit  <at> redhat.com
 import os
 import re
 import argparse
-import ConfigParser
 import requests
 import json
 import yaml
@@ -31,6 +30,12 @@ import logging
 import logging.handlers
 from ravello_sdk import *
 
+# config parser is named differently
+# depending on the version and distro
+try:
+    import ConfigParser
+except ImportError:
+    import configparser as ConfigParser
 
 def get_ansible_attributes(vm):
     y = vm['description'].partition("#%ansible")[2].partition("#%end")[0]

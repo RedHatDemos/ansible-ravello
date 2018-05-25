@@ -1,0 +1,16 @@
+---
+# existing.blueprint.app.yml
+
+- name: provision an app from an existing blueprint
+  hosts: localhost
+  vars:
+   # This variable is used by the ravello-provision-app role
+   # to determine the application name
+    - application_name: existing.blueprint.app
+   # add desired blueprint id and uncomment 
+   # the following line
+   # - blueprint_id: <id> 
+  tasks:
+   # This role provisions a new application in ravello
+    - include_role:
+        name: ravello-provision-app

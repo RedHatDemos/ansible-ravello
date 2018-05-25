@@ -143,6 +143,7 @@ instances:
         bootable: <True on first hdd in list, False otherwise>
         image: <VM boot_image if bootable, none otherwise>
         device_type: DISK
+        controller: virtio
     # network devices
     nics:
       - name: <required>
@@ -161,7 +162,7 @@ instances:
     # ansible inventory groups to add the instance to 
     groups: [<name>]
     # ansible variables to set when inventoried
-    vars: {}
+    ansible_vars: {}
 '''
     
 
@@ -215,7 +216,7 @@ class HardDrive:
         self.memory_size = from_kwargs(kwargs, 'size', 40)
         self.memory_unit = from_kwargs(kwargs, 'mem_unit', "GB")
         self.bootable = from_kwargs (kwargs, 'bootable', False)
-        self.controller = "virtio"
+        self.controller = from_kwargs(kwargs, 'controller', 'virtio')
         self.image =  from_kwargs(kwargs, 'image', '')
         self.device_type = from_kwargs(kwargs, 'device_type', "DISK")
     def to_yaml_dict(self, index):
@@ -239,23 +240,15 @@ class Service:
         self.external = from_kwargs(kwargs, 'external', True)
         self.port_range = \
           from_kwargs(kwargs, 
-                     'port', 
-                      Exception('Missing required field: port'))
+                     'port', Exception('Missing required field: port'))
         self.protocol = \
             from_kwargs(
                 kwargs, 
-                'protocol', 
-                 Exception('Missing required field: protocol'))
+                'protocol', Exception('Missing required field: protocol'))
         self.device = \
-            from_kwargs(
-                kwargs, 
-                'device', 
-                None)
+            from_kwargs(kwargs, 'device', None)
         self.name = \
-            from_kwargs(
-                kwargs, 
-                'name', 
-                self.protocol.lower())
+            from_kwargs(kwargs, 'name', self.protocol.lower())
     def to_yaml_dict(self):
         svc_yaml = {
            'external': self.external,
@@ -329,7 +322,8 @@ class Vm:
         self.services = []
         # Ansible directives
         self.proxy = from_kwargs(kwargs, 'proxy', None)
-        self.hostvars = from_kwargs(kwargs, 'vars', {})
+        self.hostvars = from_kwargs(kwargs, 'ansible_vars', {})
+        self.template_vars = from_kwargs(kwargs, 'template_vars', {})
         self.groups = from_kwargs(kwargs, 'groups', None)
         self.remote_user = from_kwargs(kwargs, 'remote_user', 'cloud-user')
         self.allow_nested= from_kwargs(kwargs, 'allow_nested', False)
@@ -338,6 +332,8 @@ class Vm:
                             Exception("private_key_path required"))
         self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
          
+        if len(disks) == 0:
+            raise Exception("There must be at least one disk")
         for i, d in enumerate(disks):
             d['index'] = i
             self.add_hard_drive(**d)
@@ -353,7 +349,8 @@ class Vm:
             self.add_service(**s)
         # Add boot disk
         if not filter(lambda hd: hd.bootable, self.hard_drives):
-            self.hard_drives[0].image = self.boot_disk_image
+            if self.hard_drives[0].image == '':
+                self.hard_drives[0].image = self.boot_disk_image
             self.hard_drives[0].bootable = True
     def gen_ansible_directives(self):
         yml = {
