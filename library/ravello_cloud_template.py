@@ -333,7 +333,8 @@ class Vm:
         self.prefer_physical = from_kwargs(kwargs, 'prefer_physical', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
                             Exception("private_key_path required"))
-        self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
+        self.boot_disk_image = from_kwargs(kwargs, 
+                'boot_image', default_image.boot_image)
          
         if len(disks) == 0:
             raise Exception("There must be at least one disk")
@@ -443,7 +444,7 @@ def main():
       path=dict(required=True, type='str'),
       instances=dict(required=True, type='list'),
       subnets=dict(required=False, type='list'),
-      default_image=dict(required=False, type='str'))
+      default_image=dict(required=True, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec)
@@ -451,17 +452,21 @@ def main():
     filepath = module.params.get('path')
     instances= module.params.get('instances')
     subnets= module.params.get('subnets')
-    default_image = module.params.get('default_image')
+    default_image.boot_image = module.params.get('default_image')
 
     t = gen_template(instances).to_yaml()
-    if default_image:
-        DEFAULT_BOOT_IMAGE = default_image
     if subnets:
         t['network'] = {}
         t['network']['subnets'] = subnets
     with open(filepath, "w") as f:
         f.write(yaml.safe_dump(t, default_flow_style=False))
     module.exit_json(msg="Created template: " + filepath)
+
+class SingletonDefaultImage:
+    def __init__(self):
+        self.boot_image =  "rhel-guest-image-7.3-35.x86_64"
+
+default_image = SingletonDefaultImage()
     
 main()
 

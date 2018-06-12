@@ -17,6 +17,8 @@ env_expire: 120
 use_cloud_template_module: True
 use_jinja_cloud_template: True
 
+default_image: GLOBAL-SYSENG-DEV-Workstation.root
+
 instances:
   - name: bastion
     services:

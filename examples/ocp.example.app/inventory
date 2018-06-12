@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 if [[ $1 == '--list' ]]; then
-  python ../../inventory/ravello.py --list ocp.example.app
+  python ../../inventory/ravello.py --list GLOBAL-SYSENG-DEV-ocp.example.app
 elif [[ $1 == '--hosts' ]]; then
   python ../../inventory/ravello.py --hosts
 fi
