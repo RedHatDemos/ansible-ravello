@@ -34,10 +34,10 @@
 
 
 - name: configure installed software and reboot
-  become: true
   hosts: all
   tasks:
     - name: update existing packages
+      become: true
       yum:
         name: "*"
         state: latest
@@ -45,6 +45,7 @@
       include_role: 
         name: reboot-host
     - name: install required packages
+      become: true
       yum:
         name: "{{ item }}"
         state: latest
@@ -121,6 +122,7 @@
   tags:
     - deploy_ocp
   become: true
+  remote_user: root
   tasks:
     - name: copy openshift-ansible
       copy: 

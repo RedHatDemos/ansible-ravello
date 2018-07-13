@@ -204,6 +204,7 @@ import re
 
 from ansible.module_utils.ravello_utils import *
 from ansible.module_utils.basic import *
+from ansible.module_utils import facts
 #from ansible.module_utils.facts import *
 
 logger = logging.getLogger()
@@ -449,6 +450,7 @@ def main():
     module = AnsibleModule(
         argument_spec=argument_spec)
     module_fail.attach_ansible_modle(module)
+
     filepath = module.params.get('path')
     instances= module.params.get('instances')
     subnets= module.params.get('subnets')

@@ -24,7 +24,7 @@
 # multiple IPs per nic
 # tags/groups
 
-import random, string
+import random, string, sys
 
 try:
     from ravello_sdk import *
@@ -479,6 +479,7 @@ def action_on_blueprint(module, client, runner_func):
 def create_blueprint_from_template(client, module):
     app_name = module.params.get("app_name")
     # Assert app does not exist in ravello
+    
     cap = client.get_applications({'name': app_name})
     if cap:
       module.fail_json(msg='ERROR: Application %s already exists!' % \
@@ -503,18 +504,18 @@ def create_blueprint_from_template(client, module):
     app_request = {}
     # Create random name extension token for app
     rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
-    app_request['name'] = "tmp-app-build-" + rand_str(10)
+    app_request['name'] = "GLOBAL-SYSENG-tmp-app-build-" + rand_str(10)
     if client.get_applications({'name': app_request ['name'] }):
       module.fail_json(msg='ERROR: Temporary application build %s already exists!' % \
               app_name, changed=False)
     # initialize app
     ravello_template_set(app_request, 'description', app_description)
     ravello_template_set(app_request, 'design.vms', [])
+    
     # Check template is valid
     for vm in read_app['vms']:
       assert_vm_valid(client, module, vm)
       app_request['design']['vms'].append(vm)
-    # Create the tmp-app in ravello
     try:
         created_app = client.create_application(app_request)
     except Exception, e:
