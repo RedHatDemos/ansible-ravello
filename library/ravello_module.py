@@ -987,8 +987,8 @@ def update_app_with_internal_luids(client, module, app_request, appID):
                   'VM')
         if 'suppliedServices' in vm:
             for j, svc in enumerate(vm ['suppliedServices']):
-                old_vm = filter(lambda v: v['hostnames'] == vm['hostnames'], 
-                                 app_request['design']['vms'])[0]
+                old_vm = list(filter(lambda v: v['hostnames'] == vm['hostnames'], 
+                                 app_request['design']['vms']))[0]
                 if check_item_exists(old_vm, 'suppliedServices.' + str(j)):
                     service_req = ravello_template_get(old_vm['suppliedServices'], str(j))
                     
