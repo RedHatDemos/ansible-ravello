@@ -503,7 +503,7 @@ def create_blueprint_from_template(client, module):
         print(exc)
     app_request = {}
     # Create random name extension token for app
-    rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
+    rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in range(n)])
     app_request['name'] = "GLOBAL-SYSENG-tmp-app-build-" + rand_str(10)
     if client.get_applications({'name': app_request ['name'] }):
       module.fail_json(msg='ERROR: Temporary application build %s already exists!' % \
