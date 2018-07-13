@@ -879,7 +879,7 @@ def path_for_next_item(app_json, jspath):
     return jspath + '.' + str(len(ravello_template_get(app_json, jspath)))
 
 def path_from_ip(created_app, path_map, ip_addr):
-    for net_block, path in path_map.iteritems():
+    for net_block, path in path_map.items():
        if IPAddress(ip_addr) in IPNetwork(net_block):
            return path 
     raise Exception('no subnet for ip: ' + ip_addr + '...' + json.dumps(path_map))
