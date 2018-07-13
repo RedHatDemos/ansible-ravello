@@ -308,7 +308,7 @@ def main():
     if username and password:
       try:
         client = RavelloClient(username, password, module.params.get('url'))
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using ansiblie provided credentials %s' % e,stdout='%s' % log_contents)
@@ -316,7 +316,7 @@ def main():
       #Get user credentials from SDK auth cache file (better)
       try:
         username, password  = get_user_credentials(None)
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to retrieve credentials from Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
@@ -324,7 +324,7 @@ def main():
         module.fail_json(msg = 'ERROR: Unable to get any Ravello credentials!')
       try:
         client = connect(username, password)
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
@@ -416,7 +416,7 @@ def list_app(client, module):
         log_capture_string.close()
         module.exit_json(changed=True, app_name='%s' % app_name, 
                 results='%s' % results,stdout='%s' % log_contents)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
@@ -432,7 +432,7 @@ def action_on_app(module, client, runner_func, waiter_func, action):
         module.exit_json(changed=True, 
                 app_name='%s application: %s' %(action, app_name),
                 stdout='%s' % log_contents)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
@@ -453,7 +453,7 @@ def create_blueprint_from_existing_app(module, client, runner_func):
                 app_name='%s' % app_name, 
                 blueprint_name='%s' % blueprint_name, 
                 blueprint_id='%s' % blueprint_id)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
@@ -470,7 +470,7 @@ def action_on_blueprint(module, client, runner_func):
         log_capture_string.close()
         module.exit_json(changed=True, stdout='%s' % log_contents, 
                 blueprint_id='%s' % blueprint_id, output='%s' % output)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
@@ -518,7 +518,7 @@ def create_blueprint_from_template(client, module):
       app_request['design']['vms'].append(vm)
     try:
         created_app = client.create_application(app_request)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents, 
@@ -556,7 +556,7 @@ def create_blueprint_from_template(client, module):
         module.exit_json(changed=True, app_name='%s' % app_name, 
                 blueprint_name='%s' % blueprint_name, 
                 blueprint_id='%s' % blueprint_id)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
