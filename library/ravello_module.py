@@ -33,7 +33,7 @@ except ImportError:
     HAS_RAVELLO_SDK = False
 
 except ImportError:
-    print "failed=True msg='ravello sdk required for this module'"
+    print("failed=True msg='ravello sdk required for this module'")
     sys.exit(1)
 
 from ravello_cli import get_diskimage
