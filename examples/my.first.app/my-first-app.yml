@@ -6,7 +6,7 @@
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.first.app
+    - application_name: GLOBAL-SYSENG-DEV-my.first.app
    # The `instances` dictionary tells the ravello-provision-app
    # role how to provision VMs
     - instances:

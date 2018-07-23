@@ -137,7 +137,7 @@ instances:
     # Enable Baremetal
     prefer_physical: False
     # Boot image must be present on account
-    boot_image: rhel-guest-image-7.3-35.x86_64
+    boot_image: GENERAL-rhel-guest-image-7.3-35.x86_64
     # hard drives
     disks:
       - name: vol
@@ -466,7 +466,7 @@ def main():
 
 class SingletonDefaultImage:
     def __init__(self):
-        self.boot_image =  "rhel-guest-image-7.3-35.x86_64"
+        self.boot_image =  "GENERAL-rhel-guest-image-7.3-35.x86_64"
 
 default_image = SingletonDefaultImage()
     
