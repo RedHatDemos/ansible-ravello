@@ -22,6 +22,6 @@
 
 - name: Configure Repository File
   include_tasks: ./activationkey-repos.yml
-  when: repo_method == "activationkey"
+  when: repo_method == "activation_key"
   tags:
     - set_repositories
