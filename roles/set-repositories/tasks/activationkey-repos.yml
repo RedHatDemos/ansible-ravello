@@ -11,7 +11,7 @@
 - name: register node with subscription-manager
   redhat_subscription:
     state: present
-    activationkey: "{{ activation_key }}"
+    activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
     auto_attach: yes
   register: task_result
