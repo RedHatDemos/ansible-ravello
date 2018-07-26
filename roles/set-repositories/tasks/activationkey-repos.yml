@@ -13,6 +13,7 @@
     state: present
     activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
+    pool: "{{ rhn_pool_id_string }}"
     auto_attach: yes
   register: task_result
   until: task_result | succeeded
