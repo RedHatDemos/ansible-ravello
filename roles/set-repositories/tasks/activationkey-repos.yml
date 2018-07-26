@@ -14,7 +14,7 @@
     activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
     pool: "{{ rhn_pool_id_string }}"
-    auto_attach: yes
+    autosubscribe: yes
   register: task_result
   until: task_result | succeeded
   retries: "{{ register_node_retries }}"
