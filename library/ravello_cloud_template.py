@@ -414,12 +414,12 @@ class Vm:
       ssh-authorized-keys:
       - """ + self.public_key
           }
-        for k, v in self.template_vars:
-            vm_yaml[k] = v
         if self.keypair_id != None:
          vm_yaml['keypairId'] = int(self.keypair_id)
         if self.keypair_name != None:
           vm_yaml['keypairName'] = self.keypair_name
+        for k, v in self.template_vars.items():
+            vm_yaml[k] = v
         return vm_yaml
 
 class Template:
