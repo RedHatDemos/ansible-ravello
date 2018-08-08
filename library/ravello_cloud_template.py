@@ -166,6 +166,8 @@ instances:
     groups: [<name>]
     # ansible variables to set when inventoried
     ansible_vars: {}
+    # raw extra cloud template parameters for the vm
+    template_vars: {}
 '''
     
 
@@ -412,6 +414,8 @@ class Vm:
       ssh-authorized-keys:
       - """ + self.public_key
           }
+        for k, v in self.template_vars:
+            vm_yaml[k] = v
         if self.keypair_id != None:
          vm_yaml['keypairId'] = int(self.keypair_id)
         if self.keypair_name != None:
