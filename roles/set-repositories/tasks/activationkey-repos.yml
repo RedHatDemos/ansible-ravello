@@ -11,9 +11,10 @@
 - name: register node with subscription-manager
   redhat_subscription:
     state: present
-    activationkey: "{{ activation_key }}"
+    activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
-    auto_attach: yes
+    pool: "{{ rhn_pool_id_string }}"
+    autosubscribe: yes
   register: task_result
   until: task_result | succeeded
   retries: "{{ register_node_retries }}"
