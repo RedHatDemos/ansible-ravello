@@ -466,7 +466,7 @@ def main():
         t['network']['subnets'] = subnets
     with open(filepath, "w") as f:
         f.write(yaml.safe_dump(t, default_flow_style=False))
-    module.exit_json(msg="Created template: " + filepath)
+    module.exit_json(changed=True, msg="Created template: " + filepath)
 
 class SingletonDefaultImage:
     def __init__(self):
