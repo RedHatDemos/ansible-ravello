@@ -1,0 +1,7 @@
+---
+# host_vars/localhost.yml
+
+instances:
+  - name: bastion
+    cpus: 1
+    ram: 2

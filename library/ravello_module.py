@@ -24,7 +24,7 @@
 # multiple IPs per nic
 # tags/groups
 
-import random, string
+import random, string, sys
 
 try:
     from ravello_sdk import *
@@ -33,7 +33,7 @@ except ImportError:
     HAS_RAVELLO_SDK = False
 
 except ImportError:
-    print "failed=True msg='ravello sdk required for this module'"
+    print("failed=True msg='ravello sdk required for this module'")
     sys.exit(1)
 
 from ravello_cli import get_diskimage
@@ -107,7 +107,7 @@ options:
      - Path to a YML file that defines an application infrastructure then creates a blueprint for further processing with follow-on playbooks.  Must use state=design
   cost_bucket:
     description:
-     - Path to a YML file that defines an application infrastructure then creates a blueprint for further processing with follow-on playbooks.  Must use state=design
+     - Cost bucket to assign to the app.  Defaults to first available cost bucket on account.
 '''
 
 EXAMPLES = '''
@@ -308,7 +308,7 @@ def main():
     if username and password:
       try:
         client = RavelloClient(username, password, module.params.get('url'))
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using ansiblie provided credentials %s' % e,stdout='%s' % log_contents)
@@ -316,7 +316,7 @@ def main():
       #Get user credentials from SDK auth cache file (better)
       try:
         username, password  = get_user_credentials(None)
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to retrieve credentials from Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
@@ -324,7 +324,7 @@ def main():
         module.fail_json(msg = 'ERROR: Unable to get any Ravello credentials!')
       try:
         client = connect(username, password)
-      except Exception, e:
+      except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = 'ERROR: Failed to authenticate to Ravello using Ravello SDK credentials cache %s' % e,stdout='%s' % log_contents)
@@ -416,7 +416,7 @@ def list_app(client, module):
         log_capture_string.close()
         module.exit_json(changed=True, app_name='%s' % app_name, 
                 results='%s' % results,stdout='%s' % log_contents)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
@@ -432,7 +432,7 @@ def action_on_app(module, client, runner_func, waiter_func, action):
         module.exit_json(changed=True, 
                 app_name='%s application: %s' %(action, app_name),
                 stdout='%s' % log_contents)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
@@ -453,7 +453,7 @@ def create_blueprint_from_existing_app(module, client, runner_func):
                 app_name='%s' % app_name, 
                 blueprint_name='%s' % blueprint_name, 
                 blueprint_id='%s' % blueprint_id)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
@@ -470,7 +470,7 @@ def action_on_blueprint(module, client, runner_func):
         log_capture_string.close()
         module.exit_json(changed=True, stdout='%s' % log_contents, 
                 blueprint_id='%s' % blueprint_id, output='%s' % output)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)        
@@ -479,6 +479,7 @@ def action_on_blueprint(module, client, runner_func):
 def create_blueprint_from_template(client, module):
     app_name = module.params.get("app_name")
     # Assert app does not exist in ravello
+    
     cap = client.get_applications({'name': app_name})
     if cap:
       module.fail_json(msg='ERROR: Application %s already exists!' % \
@@ -502,22 +503,22 @@ def create_blueprint_from_template(client, module):
         print(exc)
     app_request = {}
     # Create random name extension token for app
-    rand_str = lambda n: ''.join([random.choice(string.lowercase) for i in xrange(n)])
-    app_request['name'] = "tmp-app-build-" + rand_str(10)
+    rand_str = lambda n: ''.join([random.choice(string.ascii_lowercase) for i in range(n)])
+    app_request['name'] = app_name + "-" + rand_str(10)
     if client.get_applications({'name': app_request ['name'] }):
       module.fail_json(msg='ERROR: Temporary application build %s already exists!' % \
               app_name, changed=False)
     # initialize app
     ravello_template_set(app_request, 'description', app_description)
     ravello_template_set(app_request, 'design.vms', [])
+    
     # Check template is valid
     for vm in read_app['vms']:
       assert_vm_valid(client, module, vm)
       app_request['design']['vms'].append(vm)
-    # Create the tmp-app in ravello
     try:
         created_app = client.create_application(app_request)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents, 
@@ -555,12 +556,19 @@ def create_blueprint_from_template(client, module):
         module.exit_json(changed=True, app_name='%s' % app_name, 
                 blueprint_name='%s' % blueprint_name, 
                 blueprint_id='%s' % blueprint_id)
-    except Exception, e:
+    except Exception as e:
         log_contents = log_capture_string.getvalue()
         log_capture_string.close()
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
 def create_app_and_publish(client, module):
+    app_name = module.params.get("app_name")
+    # Assert app does not exist in ravello
+    
+    cap = client.get_applications({'name': app_name})
+    if cap:
+      module.fail_json(msg='ERROR: Application %s already exists!' % \
+              app_name, changed=False)
     #validation
     if not module.params.get("blueprint_id"):
             module.fail_json(msg='Must supply a blueprint_id', changed=False)
@@ -878,7 +886,7 @@ def path_for_next_item(app_json, jspath):
     return jspath + '.' + str(len(ravello_template_get(app_json, jspath)))
 
 def path_from_ip(created_app, path_map, ip_addr):
-    for net_block, path in path_map.iteritems():
+    for net_block, path in path_map.items():
        if IPAddress(ip_addr) in IPNetwork(net_block):
            return path 
     raise Exception('no subnet for ip: ' + ip_addr + '...' + json.dumps(path_map))
@@ -986,8 +994,8 @@ def update_app_with_internal_luids(client, module, app_request, appID):
                   'VM')
         if 'suppliedServices' in vm:
             for j, svc in enumerate(vm ['suppliedServices']):
-                old_vm = filter(lambda v: v['hostnames'] == vm['hostnames'], 
-                                 app_request['design']['vms'])[0]
+                old_vm = list(filter(lambda v: v['hostnames'] == vm['hostnames'], 
+                                 app_request['design']['vms']))[0]
                 if check_item_exists(old_vm, 'suppliedServices.' + str(j)):
                     service_req = ravello_template_get(old_vm['suppliedServices'], str(j))
                     

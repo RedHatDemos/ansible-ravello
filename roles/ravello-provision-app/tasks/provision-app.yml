@@ -13,6 +13,7 @@
     path: "{{ template_in_path }}"
     instances: "{{ instances }}"
     subnets: "{{ subnets }}"
+    default_image: "{{ default_image }}"
   when: use_cloud_template_module
 
 - name: Expand jinja template into finalized ravello template

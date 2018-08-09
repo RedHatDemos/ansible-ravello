@@ -1,5 +1,176 @@
 #!/bin/python
 
+DOCUMENTATION='''
+---
+module: ravello_cloud_template
+short_description: Quickly define cloud templates for ravellosystems applications
+description:
+    - This module provides defaults for most Ravello application parameters,
+      allowing template specifications to be concise.  The module takes an
+      ansible yaml dictionary of VM instances and network subnet definitions,
+      and produces a complete cloud template which is ready to be used by the 
+      ravello_module.  
+    - VMs can be assigned public and private keys for the ravello dynamic inventory
+      to use when setting up ssh connections and proxies
+options:
+    path:
+      description:
+        - output destination of template.
+    instances:
+      description:
+        - a dictionary of virtual machine definitions. see examples for full usage.
+    subnets:
+      description:
+        - a list of CIDR block strings.
+    default_image:
+      description:
+        - boot image to assign to VMs when no local image definition is found
+'''
+
+
+EXAMPLES='''
+---
+# Create a ravello template for an app with 
+# the bastion as a proxy tunnel to reach the webserver
+- ravello_cloud_template:
+    path: "{{ template_in_path }}"
+    subnets:
+      - 10.0.0.0/24
+    instances: 
+      - name: bastion
+        services:
+          - protocol: ssh
+            port: 22
+        # This will install the public key to .ssh/authorized_keys
+        public_key: {{ your_public_key }}
+        # This tags the VM with the path of the ssh key on the
+        # control node that ansible should use to connect.
+        # It does not install the private key to the machine.
+        private_key_path: {{ ansible_private_key_path }}
+      - name: webserver
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+        # Tags the instance for the ravello dynamic inventory
+        # to set up the bastion as a proxy tunnel for this machine
+        proxy: bastion
+
+# Create a customized application with two 
+# webservers and a bastion.  
+- ravello_cloud_template:
+    path: "{{ template_in_path }}"
+    subnets:
+      - 192.168.0.0/16
+    instances:
+      - name: bastion
+        hostname: bastion.example.com
+        cpus: 1
+        ram: 2
+        disks:
+          - size: 50
+          - size: 100
+        nics:
+          - name: eth0
+            ip: 192.168.1.10
+        services:
+            - protocol: ssh
+              port: 22
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+      - name: webserver1
+        hostname: webserver1.example.com
+        proxy: bastion
+        groups: 
+          - webservers
+        cpus: 2
+        ram: 4
+        disks:
+          - size: 50
+        nics:
+          - name: eth0
+            ip: 192.168.10.11
+        services:
+            - protocol: http
+              port: 80
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+      - name: webserver2
+        hostname: webserver2.example.com
+        proxy: bastion
+        groups: 
+          - webservers 
+        cpus: 2
+        ram: 4
+        disks:
+          - size: 50
+        nics:
+          - name: eth0
+            ip: 192.168.10.12
+        services:
+            - protocol: http
+              port: 80
+        public_key: {{ your_public_key }}
+        private_key_file: {{ ansible_private_key_path }}
+
+# Full api for the instances field.
+# Required values are marked as <required>
+# Otherwise, default values are shown
+instances:
+  - name: <required>
+    public_key: <required>
+    private_key_path: <required>
+    description: None
+    cpus: 1
+    ram: 2
+    mem_unit: GB
+    # ravello keypair name
+    keypair_name: None
+    # ravello keypair id
+    keypair_id: None
+    # hostname can also be a list of hostnames
+    hostname: <name>.example.com
+    # <name> of instance to proxy through
+    proxy: None
+    # username and ansible remote_user
+    remote_user: cloud_user
+    # Nested Virtualization
+    allow_nested: False
+    # Enable Baremetal
+    prefer_physical: False
+    # Boot image must be present on account
+    boot_image: GENERAL-rhel-guest-image-7.3-35.x86_64
+    # hard drives
+    disks:
+      - name: vol
+        size: 40
+        mem_unit: GB
+        bootable: <True on first hdd in list, False otherwise>
+        image: <VM boot_image if bootable, none otherwise>
+        device_type: DISK
+        controller: virtio
+    # network devices
+    nics:
+      - name: <required>
+        controller: virtio
+        ip: None (auto-assigned)
+        public_ip: True
+        mac: None (auto-assigned)
+    # ports to open
+    services:
+     - protocol: <required>
+       name: <protocol>
+       # network device
+       device: None (auto-assigned)
+       # port or range of ports
+       port: <required>
+    # ansible inventory groups to add the instance to 
+    groups: [<name>]
+    # ansible variables to set when inventoried
+    ansible_vars: {}
+    # raw extra cloud template parameters for the vm
+    template_vars: {}
+'''
+    
+
 import sys
 import yaml
 import random, string
@@ -11,7 +182,7 @@ except ImportError:
     HAS_RAVELLO_SDK = False
 
 except ImportError:
-    print "failed=True msg='ravello sdk required for this module'"
+    print("failed=True msg='ravello sdk required for this module'")
     sys.exit(1)
 
 from ravello_cli import get_diskimage
@@ -35,6 +206,7 @@ import re
 
 from ansible.module_utils.ravello_utils import *
 from ansible.module_utils.basic import *
+from ansible.module_utils import facts
 #from ansible.module_utils.facts import *
 
 logger = logging.getLogger()
@@ -48,9 +220,9 @@ class HardDrive:
         self.index  = from_kwargs(kwargs, 'index', Exception("index required for hdds"))
         self.name  = from_kwargs(kwargs, 'name', 'vol' + str(self.index))
         self.memory_size = from_kwargs(kwargs, 'size', 40)
-        self.memory_unit = from_kwargs(kwargs, 'memory_unit', "GB")
+        self.memory_unit = from_kwargs(kwargs, 'mem_unit', "GB")
         self.bootable = from_kwargs (kwargs, 'bootable', False)
-        self.controller = "virtio"
+        self.controller = from_kwargs(kwargs, 'controller', 'virtio')
         self.image =  from_kwargs(kwargs, 'image', '')
         self.device_type = from_kwargs(kwargs, 'device_type', "DISK")
     def to_yaml_dict(self, index):
@@ -74,23 +246,15 @@ class Service:
         self.external = from_kwargs(kwargs, 'external', True)
         self.port_range = \
           from_kwargs(kwargs, 
-                     'port', 
-                      Exception('Missing required field: port'))
+                     'port', Exception('Missing required field: port'))
         self.protocol = \
             from_kwargs(
                 kwargs, 
-                'protocol', 
-                 Exception('Missing required field: protocol'))
+                'protocol', Exception('Missing required field: protocol'))
         self.device = \
-            from_kwargs(
-                kwargs, 
-                'device', 
-                None)
+            from_kwargs(kwargs, 'device', None)
         self.name = \
-            from_kwargs(
-                kwargs, 
-                'name', 
-                self.protocol.lower())
+            from_kwargs(kwargs, 'name', self.protocol.lower())
     def to_yaml_dict(self):
         svc_yaml = {
            'external': self.external,
@@ -164,15 +328,19 @@ class Vm:
         self.services = []
         # Ansible directives
         self.proxy = from_kwargs(kwargs, 'proxy', None)
-        self.hostvars = from_kwargs(kwargs, 'vars', {})
+        self.hostvars = from_kwargs(kwargs, 'ansible_vars', {})
+        self.template_vars = from_kwargs(kwargs, 'template_vars', {})
         self.groups = from_kwargs(kwargs, 'groups', None)
         self.remote_user = from_kwargs(kwargs, 'remote_user', 'cloud-user')
         self.allow_nested= from_kwargs(kwargs, 'allow_nested', False)
         self.prefer_physical = from_kwargs(kwargs, 'prefer_physical', False)
         self.private_key_path = from_kwargs(kwargs, 'private_key_path', 
                             Exception("private_key_path required"))
-        self.boot_disk_image = from_kwargs(kwargs, 'boot_image', DEFAULT_BOOT_IMAGE)
+        self.boot_disk_image = from_kwargs(kwargs, 
+                'boot_image', default_image.boot_image)
          
+        if len(disks) == 0:
+            raise Exception("There must be at least one disk")
         for i, d in enumerate(disks):
             d['index'] = i
             self.add_hard_drive(**d)
@@ -188,7 +356,8 @@ class Vm:
             self.add_service(**s)
         # Add boot disk
         if not filter(lambda hd: hd.bootable, self.hard_drives):
-            self.hard_drives[0].image = self.boot_disk_image
+            if self.hard_drives[0].image == '':
+                self.hard_drives[0].image = self.boot_disk_image
             self.hard_drives[0].bootable = True
     def gen_ansible_directives(self):
         yml = {
@@ -249,6 +418,8 @@ class Vm:
          vm_yaml['keypairId'] = int(self.keypair_id)
         if self.keypair_name != None:
           vm_yaml['keypairName'] = self.keypair_name
+        for k, v in self.template_vars.items():
+            vm_yaml[k] = v
         return vm_yaml
 
 class Template:
@@ -277,22 +448,31 @@ def main():
     argument_spec=dict(
       path=dict(required=True, type='str'),
       instances=dict(required=True, type='list'),
-      subnets=dict(required=False, type='list'))
+      subnets=dict(required=False, type='list'),
+      default_image=dict(required=True, type='str'))
 
     module = AnsibleModule(
-        argument_spec=argument_spec,
-        mutually_exclusive=[['blueprint', 'app_template']])
+        argument_spec=argument_spec)
     module_fail.attach_ansible_modle(module)
+
     filepath = module.params.get('path')
     instances= module.params.get('instances')
     subnets= module.params.get('subnets')
+    default_image.boot_image = module.params.get('default_image')
+
     t = gen_template(instances).to_yaml()
     if subnets:
         t['network'] = {}
         t['network']['subnets'] = subnets
     with open(filepath, "w") as f:
         f.write(yaml.safe_dump(t, default_flow_style=False))
-    module.exit_json(msg="Created template: " + filepath)
+    module.exit_json(changed=True, msg="Created template: " + filepath)
+
+class SingletonDefaultImage:
+    def __init__(self):
+        self.boot_image =  "GENERAL-rhel-guest-image-7.3-35.x86_64"
+
+default_image = SingletonDefaultImage()
     
 main()
 

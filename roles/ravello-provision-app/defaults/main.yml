@@ -17,6 +17,8 @@ env_expire: 120
 use_cloud_template_module: True
 use_jinja_cloud_template: True
 
+default_image: GENERAL-rhel-guest-image-7.3-35.x86_64
+
 instances:
   - name: bastion
     services:

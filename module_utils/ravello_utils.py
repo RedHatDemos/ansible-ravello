@@ -12,7 +12,6 @@ import getpass
 import logging
 import logging.handlers
 
-DEFAULT_BOOT_IMAGE = "rhel-guest-image-7.3-35.x86_64"
 
 class ModuleFail:
     def __init__(self):

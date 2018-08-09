@@ -11,13 +11,11 @@
 - name: register node with subscription-manager
   redhat_subscription:
     state: present
-#    username: "{{ rhel_subscription_user }}"
-#    password: "{{ rhel_subscription_pass }}"
-    activationkey: "{{ activation_key }}"
+    activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
+    pool: "{{ rhn_pool_id_string }}"
+    autosubscribe: yes
   register: task_result
-#  async: 300
-#  poll: 10
   until: task_result | succeeded
   retries: "{{ register_node_retries }}"
   delay: 5

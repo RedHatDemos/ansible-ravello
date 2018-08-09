@@ -8,9 +8,11 @@
   when: (hostIsProxy is defined) and (hostIsProxy)
 
 - name: send reboot request to systemd
-  shell: sudo /usr/bin/systemd-run --on-active=10 /usr/bin/systemctl reboot
+  become: true
+  shell: /usr/bin/systemd-run --on-active=10 /usr/bin/systemctl reboot
 
 - name: wait for proxy host availability
+  remote_user: "{{ ansible_user }}"
   local_action:
     module: wait_for
     port: 22
@@ -20,6 +22,7 @@
   when: proxyFqdn is defined
 
 - name: wait for host availability (from localhost)
+  remote_user: "{{ ansible_user }}"
   local_action:
     module: wait_for
     port: 22

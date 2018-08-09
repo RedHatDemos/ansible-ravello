@@ -6,7 +6,7 @@
   vars:
    # This variable is used by the ravello-provision-app role
    # to determine the application name
-    - application_name: my.project.app
+    - application_name: GLOBAL-SYSENG-DEV-my.project.app
   tasks:
    # This role provisions a new application in ravello
     - include_role:
@@ -33,13 +33,13 @@
 
 
 - name: update systems and reboot
-  become: true
   hosts: 
     - bastion.example.com
     - webserver1.example.com
     - webserver2.example.com
   tasks:
-    - yum:
+    - become: true
+      yum:
         name: "*"
         state: latest
     - include_role: 
