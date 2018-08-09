@@ -562,6 +562,13 @@ def create_blueprint_from_template(client, module):
         module.fail_json(msg = '%s' % e,stdout='%s' % log_contents)
 
 def create_app_and_publish(client, module):
+    app_name = module.params.get("app_name")
+    # Assert app does not exist in ravello
+    
+    cap = client.get_applications({'name': app_name})
+    if cap:
+      module.fail_json(msg='ERROR: Application %s already exists!' % \
+              app_name, changed=False)
     #validation
     if not module.params.get("blueprint_id"):
             module.fail_json(msg='Must supply a blueprint_id', changed=False)
