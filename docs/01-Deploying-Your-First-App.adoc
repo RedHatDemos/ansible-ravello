@@ -56,7 +56,7 @@ You will use this newly created inventory any time you run `ansible-playbook`.
 == Create the Playbook
 
 In the top level directory of the `ansible-ravello` repo, create 
-a new file called `<your-name>-first-app.yml`.  This playbook file will 
+a new file called `main.yml`.  This playbook file will 
 do the following things:
 
 * Set the application name using the variable `application_name`
@@ -66,7 +66,7 @@ do the following things:
 
 ```
 ---
-# <your-name>-first-app.yml
+# main.yml
 
 - name: provision my first application
   hosts: localhost
@@ -107,7 +107,7 @@ Run `ansible-playbook` from the top-level directory of the `ansible-ravello`
 repository to build and launch your application.
 
 ```
-ansible-playbook -i app-inventory <your-name>-first-app.yml -vv
+ansible-playbook -i app-inventory main.yml -vv
 ```
 
 Ansible will begin provisioning your application in Ravello.
