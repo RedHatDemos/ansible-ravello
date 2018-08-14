@@ -49,7 +49,7 @@ instances in `host_vars/localhost.yml`, which we will create next.
 
 ```
 ---
-# <your-name>-project-app.yml
+# main.yml
 
 - name: provision my first project
   hosts: localhost
@@ -132,7 +132,7 @@ rhel_subscription_password: <password>
 ansible-vault encrypt <path/to/credentials>
 ```
 
-Add the following the play to `<your-name>-project-app.yml`.
+Add the following the play to `main.yml`.
 
 ```
 - name: enable repositories
@@ -198,7 +198,7 @@ last, and will wait for the instances to be available again.
 
 ```
 ---
-# <your-name>-project-app.yml
+# main.yml
 
 - name: provision my first project
   hosts: localhost
@@ -264,7 +264,7 @@ last, and will wait for the instances to be available again.
 Deploy the app using the following command (or alternatively use a vault password file):
 
 ```
-ansible-playbook -i inventory <your-name>-project-app.yml --ask-vault-pass
+ansible-playbook -i inventory main.yml --ask-vault-pass
 ```
 
 == Accessing the Deployed Application

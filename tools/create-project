@@ -15,9 +15,9 @@ roles_path   = `readlink -f $THIS_DIR/../roles`
 module_utils = `readlink -f $THIS_DIR/../module_utils`
 END
 
-cat > ${APP_PATH}/${APP_NAME}.yml << END
+cat > ${APP_PATH}/main.yml << END
 ---
-# $APP_NAME.yml
+# main.yml
 
 - name: provision my first project
   hosts: localhost

@@ -3,11 +3,11 @@
 APP_NAME=raw.template.app
 
 if [[ $1 == '--list' ]]; then
-  python /virt/nfs/ansible-ravello/inventory/ravello.py --list $APP_NAME
+  python ../../inventory/ravello.py --list $APP_NAME
 elif [[ $1 == '--hosts' ]]; then
-  python /virt/nfs/ansible-ravello/inventory/ravello.py --hosts
+  python ../../inventory/ravello.py --hosts
 elif [[ $1 == '--proxy-fqdns' ]]; then
-  python /virt/nfs/ansible-ravello/inventory/ravello.py --list $APP_NAME |     gawk 'match($0, /proxyFqdn/){print substr($2,2,length($2)-3)}' | uniq
+  python ../../inventory/ravello.py --list $APP_NAME |     gawk 'match($0, /proxyFqdn/){print substr($2,2,length($2)-3)}' | uniq
 elif [[ $1 == '--all-fqdns' ]]; then
-  python /virt/nfs/ansible-ravello/inventory/ravello.py --list $APP_NAME |     gawk 'match($0, /externalFqdn/){print substr($2,2,length($2)-3)}' | uniq
+  python ../../inventory/ravello.py --list $APP_NAME |     gawk 'match($0, /externalFqdn/){print substr($2,2,length($2)-3)}' | uniq
 fi
