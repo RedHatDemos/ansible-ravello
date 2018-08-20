@@ -22,7 +22,9 @@
     org_id: "{{satellite_org}}"
 
 - name: Enable Repositories
-  command: subscription-manager repos --enable=rhel-7-server-satellite-tools-6.2-rpms
+  rhsm_repository:
+    name: rhel-7-server-satellite-tools-6.2-rpms
+    state: enabled
 
 - name: Install Katello Agent
   yum: pkg=katello-agent state=latest
