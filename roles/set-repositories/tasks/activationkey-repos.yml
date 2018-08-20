@@ -4,7 +4,7 @@
   redhat_subscription:
     state: absent
   register: task_result
-  until: task_result | succeeded
+  until: task_result is succeeded
   retries: 10
   delay: 5
 
@@ -14,9 +14,8 @@
     activationkey: "{{ activationkey }}"
     org_id: "{{ org }}"
     pool: "{{ rhn_pool_id_string }}"
-    autosubscribe: yes
   register: task_result
-  until: task_result | succeeded
+  until: task_result is succeeded
   retries: "{{ register_node_retries }}"
   delay: 5
 
