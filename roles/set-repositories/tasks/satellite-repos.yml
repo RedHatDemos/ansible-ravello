@@ -32,6 +32,8 @@
   service: name=goferd state=started
 
 - name: enable repos for rhel
-  command: subscription-manager repos --enable "{{ item }}"
+  rhsm_repository:
+    name: "{{ item }}"
+    state: enabled
   with_items:
     - '{{ repos_to_enable }}'
