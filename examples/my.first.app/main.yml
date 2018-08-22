@@ -12,7 +12,7 @@
     - instances:
       - name: bastion
         services:
-          - protocol: ssh
+          - protocol: SSH
             port: 22
       - name: server
         proxy: bastion
