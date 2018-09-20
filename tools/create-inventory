@@ -1,7 +1,15 @@
-#!/bin/env bash
+#!/bin/bash
+
+os=`uname -s`
+if [ "$os" == "Darwin" ]
+then
+  rl="stat"
+else
+  rl="readlink"
+fi
 
 OUT_FILE=""
-THIS_DIR=$(dirname $(readlink -f $0))
+THIS_DIR=$(dirname $($rl -f $0))
 
 while [[ $# -gt 0 ]]; do
 
@@ -22,14 +30,14 @@ OUTPUT="#!/bin/bash
 APP_NAME=$APP_NAME
 
 if [[ \$1 == '--list' ]]; then
-  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME
+  python $($rl -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME
 elif [[ \$1 == '--hosts' ]]; then
-  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --hosts
+  python $($rl -f $THIS_DIR/../inventory/ravello.py) --hosts
 elif [[ \$1 == '--proxy-fqdns' ]]; then
-  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
+  python $($rl -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
     gawk 'match(\$0, /proxyFqdn/){print substr(\$2,2,length(\$2)-3)}' | uniq
 elif [[ \$1 == '--all-fqdns' ]]; then
-  python $(readlink -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
+  python $($rl -f $THIS_DIR/../inventory/ravello.py) --list \$APP_NAME | \
     gawk 'match(\$0, /externalFqdn/){print substr(\$2,2,length(\$2)-3)}' | uniq
 fi"
 
