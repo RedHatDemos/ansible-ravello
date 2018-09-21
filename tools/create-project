@@ -10,6 +10,7 @@ mkdir $APP_PATH && \
 cat > $APP_PATH/ansible.cfg << END
 # ansible.cfg
 [defaults]
+inventory    = inventory
 library      = `readlink -f $THIS_DIR/../library`
 roles_path   = `readlink -f $THIS_DIR/../roles`
 module_utils = `readlink -f $THIS_DIR/../module_utils`
