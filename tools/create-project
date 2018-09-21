@@ -1,10 +1,10 @@
 #!/bin/env bash
 
 APP_PATH=$1
-APP_NAME=`basename $1`
-THIS_DIR=$(dirname $(readlink -f $0))
 
 if [[ "$APP_PATH" != "" ]]; then
+APP_NAME=`basename $1`
+THIS_DIR=$(dirname $(readlink -f $0))
 
 mkdir $APP_PATH && \
 cat > $APP_PATH/ansible.cfg << END
