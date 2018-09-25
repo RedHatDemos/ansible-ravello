@@ -505,16 +505,21 @@ def create_blueprint_from_template(client, module):
     # Create random name extension token for app
     rand_str = lambda n: ''.join([random.choice(string.ascii_lowercase) for i in range(n)])
     app_request['name'] = app_name + "-" + rand_str(10)
+    # Set Required Default
+    app_request['usingNewNetwork'] = True
+
     if client.get_applications({'name': app_request ['name'] }):
       module.fail_json(msg='ERROR: Temporary application build %s already exists!' % \
               app_name, changed=False)
     # initialize app
     ravello_template_set(app_request, 'description', app_description)
     ravello_template_set(app_request, 'design.vms', [])
-    
+
     # Check template is valid
     for vm in read_app['vms']:
       assert_vm_valid(client, module, vm)
+      # Set Required Default
+      vm['usingNewNetwork'] = True
       app_request['design']['vms'].append(vm)
     try:
         created_app = client.create_application(app_request)
