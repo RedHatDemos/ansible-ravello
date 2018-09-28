@@ -5,3 +5,5 @@ application deployments using Ansible.
 
 For the best experience, it is recommended that users
 have some existing familiarity with Ravello and Ansible.
+
+This repo has moved to https://gitlab.com/redhat-cop/ansible-ravello/ravello-ansible-module
