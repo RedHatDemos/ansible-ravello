@@ -1,15 +1,16 @@
 #!/bin/env bash
 
 APP_PATH=$1
-APP_NAME=`basename $1`
-THIS_DIR=$(dirname $(readlink -f $0))
 
 if [[ "$APP_PATH" != "" ]]; then
+APP_NAME=`basename $1`
+THIS_DIR=$(dirname $(readlink -f $0))
 
 mkdir $APP_PATH && \
 cat > $APP_PATH/ansible.cfg << END
 # ansible.cfg
 [defaults]
+inventory    = inventory
 library      = `readlink -f $THIS_DIR/../library`
 roles_path   = `readlink -f $THIS_DIR/../roles`
 module_utils = `readlink -f $THIS_DIR/../module_utils`
